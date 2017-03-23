@@ -18,6 +18,7 @@ class CreateMarketplacesTable extends Migration
             $table->string('website')->nullable();
             $table->string('logo')->nullable();
             $table->string('group')->nullable();
+            $table->string('currency');
             $table->timestamps();
 
             $table->index('group');

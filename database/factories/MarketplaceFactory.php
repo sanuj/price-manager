@@ -7,5 +7,6 @@ $factory->define(App\Marketplace::class, function (Faker\Generator $faker) {
         'website' => $faker->url,
         'logo' => $faker->imageUrl(140, 140),
         'group' => $faker->optional()->word,
+        'currency' => $faker->currencyCode,
     ];
 });
