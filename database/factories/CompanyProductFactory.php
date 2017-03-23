@@ -1,7 +1,7 @@
 <?php
 
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
-$factory->define(App\Listing::class, function (Faker\Generator $faker) {
+$factory->define(App\CompanyProduct::class, function (Faker\Generator $faker) {
     return [
         'name' => $faker->name,
         'company_id' => function () {
