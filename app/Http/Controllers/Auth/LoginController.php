@@ -57,7 +57,7 @@ class LoginController extends Controller
             return $this->sendFailedLoginResponse($request);
         }
 
-        Auth::login($user);
+        $this->guard()->login($user);
 
         return $this->sendLoginResponse($request);
     }
