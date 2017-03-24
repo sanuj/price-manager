@@ -15,5 +15,6 @@ dependencies:
 
 test:
   override:
+    - touch .env
     - php artisan key:generate
     - php vendor/bin/phpunit
