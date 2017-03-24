@@ -10,4 +10,10 @@ class Company extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function marketplaces()
+    {
+        return $this->belongsToMany(Marketplace::class)
+                    ->using(CompanyMarketplace::class);
+    }
 }
