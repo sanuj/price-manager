@@ -23,10 +23,10 @@ class CreatePriceSnapshotsTable extends Migration
             $table->bigInteger('max_price');
 
             // In market place currency format.
-            $table->bigInteger('marketplace_selling_price');
-            $table->bigInteger('marketplace_cost_price');
-            $table->bigInteger('marketplace_min_price');
-            $table->bigInteger('marketplace_max_price');
+            $table->float('marketplace_selling_price');
+            $table->float('marketplace_cost_price');
+            $table->float('marketplace_min_price');
+            $table->float('marketplace_max_price');
 
             $table->timestamps();
 
