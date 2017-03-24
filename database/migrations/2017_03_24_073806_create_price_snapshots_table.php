@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateMarketplaceListingsTable extends Migration
+class CreatePriceSnapshotsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,16 +12,9 @@ class CreateMarketplaceListingsTable extends Migration
      */
     public function up()
     {
-        Schema::create('marketplace_listings', function (Blueprint $table) {
+        Schema::create('price_snapshots', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('marketplace_id')->unsigned();
-            $table->bigInteger('company_product_id')->unsigned();
-
-            // Product identification on Marketplace.
-            $table->string('uid')->nullable();
-            $table->string('sku')->nullable();
-            $table->string('url')->nullable();
-            $table->string('ref_num')->nullable();
+            $table->bigInteger('marketplace_listing_id')->unsigned();
 
             // Prices. (Always in INR).
             $table->bigInteger('selling_price');
@@ -37,8 +30,10 @@ class CreateMarketplaceListingsTable extends Migration
 
             $table->timestamps();
 
-            $table->foreign('marketplace_id')->references('id')->on('marketplaces')->onDelete('cascade');
-            $table->foreign('company_product_id')->references('id')->on('company_products')->onDelete('cascade');
+            $table->foreign('marketplace_listing_id')
+                  ->references('id')
+                  ->on('marketplace_listings')
+                  ->onDelete('cascade');
         });
     }
 
@@ -49,6 +44,6 @@ class CreateMarketplaceListingsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('marketplace_listings');
+        Schema::dropIfExists('price_snapshots');
     }
 }

@@ -4,10 +4,8 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class MarketplaceListing extends Model
+class PriceSnapshot extends Model
 {
-    use Concerns\Revisionable;
-
     protected $casts = [
         'selling_price' => 'int',
         'cost_price' => 'int',
@@ -20,18 +18,8 @@ class MarketplaceListing extends Model
         'marketplace_max_price' => 'float',
     ];
 
-    public function marketplace()
+    public function marketplaceListing()
     {
-        return $this->belongsTo(Marketplace::class);
-    }
-
-    public function listing()
-    {
-        return $this->belongsTo(CompanyProduct::class);
-    }
-
-    public function priceSnapshots()
-    {
-        return $this->hasMany(PriceSnapshot::class);
+        return $this->belongsTo(MarketplaceListing::class);
     }
 }
