@@ -18,7 +18,7 @@ class CreateCompaniesTable extends Migration
             $table->integer('referrer_id')->unsigned()->nullable();
             $table->timestamps();
 
-            $table->foreign('referrer')->references('id')->on('users')->onDelete('SET NULL');
+            $table->foreign('referrer_id')->references('id')->on('users')->onDelete('SET NULL');
         });
     }
 

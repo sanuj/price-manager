@@ -11,6 +11,7 @@
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.3",
+        "doctrine/dbal": "^2.5",
         "fzaninotto/faker": "~1.4",
         "mockery/mockery": "0.9.*",
         "phpunit/phpunit": "~5.7"
@@ -42,6 +43,11 @@
         "post-update-cmd": [
             "Illuminate\\Foundation\\ComposerScripts::postUpdate",
             "php artisan optimize"
+        ],
+        "generate": [
+            "php artisan ide-helper:models -F .phpstorm.meta.php/models.php",
+            "php artisan ide-helper:generate -- .phpstorm.meta.php/facade",
+            "php artisan ide-helper:meta -F .phpstorm.meta.php/laravel.php"
         ]
     },
     "config": {
