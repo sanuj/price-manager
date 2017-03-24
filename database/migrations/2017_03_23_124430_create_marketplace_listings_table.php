@@ -23,16 +23,17 @@ class CreateMarketplaceListingsTable extends Migration
             $table->string('url')->nullable();
             $table->string('ref_num')->nullable();
 
-            // Various prices. (Always in INR).
-            $table->bigInteger('price');
+            // Prices. (Always in INR).
+            $table->bigInteger('selling_price');
             $table->bigInteger('cost_price');
             $table->bigInteger('min_price');
             $table->bigInteger('max_price');
 
             // In market place currency format.
-            $table->float('marketplace_price')->nullable();
-            $table->string('marketplace_currency')->nullable();
-            $table->timestamp('marketplace_price_updated_at')->nullable();
+            $table->bigInteger('marketplace_selling_price');
+            $table->bigInteger('marketplace_cost_price');
+            $table->bigInteger('marketplace_min_price');
+            $table->bigInteger('marketplace_max_price');
 
             $table->timestamps();
 

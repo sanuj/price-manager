@@ -2,7 +2,6 @@
 
 namespace App;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 
@@ -16,17 +15,6 @@ class MarketplaceListing extends Model
     public function listing()
     {
         return $this->belongsTo(CompanyProduct::class);
-    }
-
-    public function setPriceAttribute($price)
-    {
-        $this->attributes['price'] = $price;
-        // Convert Paise to Currency.
-        if ($this->exists) {
-            $this->attributes['marketplace_price'] = $price;
-            $this->attributes['marketplace_currency'] = $this->marketplace->currency;
-            $this->attributes['marketplace_price_updated_at'] = Carbon::now()->timestamp;
-        }
     }
 
     /**
