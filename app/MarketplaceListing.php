@@ -18,50 +18,15 @@ class MarketplaceListing extends Model
         return $this->belongsTo(CompanyProduct::class);
     }
 
-    public function getPriceAttribute()
+    public function setPriceAttribute($price)
     {
-        return $this->toRupees((int)$this->attributes['price']);
-    }
-
-    public function setPriceAttribute($value)
-    {
-        $this->attributes['price'] = $price = $this->toPaise($value);
+        $this->attributes['price'] = $price;
         // Convert Paise to Currency.
         if ($this->exists) {
-            $this->attributes['marketplace_price'] = $this->paiseToCurrency($price, $this->marketplace->currency);
+            $this->attributes['marketplace_price'] = $price;
             $this->attributes['marketplace_currency'] = $this->marketplace->currency;
             $this->attributes['marketplace_price_updated_at'] = Carbon::now()->timestamp;
         }
-    }
-
-    public function getCostPriceAttribute()
-    {
-        return $this->toRupees((int)$this->attributes['cost_price']);
-    }
-
-    public function setCostPriceAttribute($value)
-    {
-        $this->attributes['cost_price'] = $this->toPaise($value);
-    }
-
-    public function getMinPriceAttribute()
-    {
-        return $this->toRupees((int)$this->attributes['min_price']);
-    }
-
-    public function setMinPriceAttribute($value)
-    {
-        $this->attributes['min_price'] = $this->toPaise($value);
-    }
-
-    public function getMaxPriceAttribute()
-    {
-        return $this->toRupees((int)$this->attributes['max_price']);
-    }
-
-    public function setMaxPriceAttribute($value)
-    {
-        $this->attributes['max_price'] = $this->toPaise($value);
     }
 
     /**
