@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MarketplaceListing extends Model
 {
+    use Concerns\Revisionable;
 
     protected $casts = [
         'selling_price' => 'int',

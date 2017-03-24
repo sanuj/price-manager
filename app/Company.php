@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Company extends Model
 {
+    use Concerns\Revisionable;
+
     public function referrer()
     {
         return $this->belongsTo(User::class);
