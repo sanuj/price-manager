@@ -1,0 +1,18 @@
+machine:
+  php:
+    version: 7.1.4
+  environment:
+    DBUS_SESSION_BUS_ADDRESS: /dev/null
+
+dependencies:
+  pre:
+    - echo "memory_limit = 2048M" > /opt/circleci/php/$(phpenv global)/etc/conf.d/memory.ini
+    - type -P yarn &> /dev/null || curl -o- -s -L https://yarnpkg.com/install.sh | bash
+  override:
+    - composer install --dev --no-interaction --no-progress
+  cache_directories:
+    - "~/.composer/cache"
+
+test:
+  override:
+    - php vendor/bin/phpunit
