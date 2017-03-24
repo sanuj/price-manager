@@ -16,8 +16,8 @@ class CreateCompanyMarketplaceTable extends Migration
         Schema::create('company_marketplace', function (Blueprint $table) {
             $table->increments('id');
 
-            $table->integer('company_id');
-            $table->integer('marketplace_id');
+            $table->integer('company_id')->unsigned();
+            $table->integer('marketplace_id')->unsigned();
 
             $table->text('credentials');
 

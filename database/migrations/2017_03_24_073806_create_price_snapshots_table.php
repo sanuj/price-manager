@@ -14,7 +14,7 @@ class CreatePriceSnapshotsTable extends Migration
     {
         Schema::create('price_snapshots', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('marketplace_listing_id');
+            $table->bigInteger('marketplace_listing_id')->unsigned();
 
             // Prices. (Always in INR).
             $table->bigInteger('selling_price');
