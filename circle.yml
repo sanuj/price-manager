@@ -15,4 +15,5 @@ dependencies:
 
 test:
   override:
+    - php artisan key:generate
     - php vendor/bin/phpunit
