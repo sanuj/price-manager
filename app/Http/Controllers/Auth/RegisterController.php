@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Company;
 use App\User;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Session;
 
 class RegisterController extends Controller
 {
@@ -21,6 +23,7 @@ class RegisterController extends Controller
     |
     */
 
+    const REFERRER_KEY = 'referrer';
     use RegistersUsers;
 
     /**
@@ -37,6 +40,18 @@ class RegisterController extends Controller
     {
         $this->middleware('guest');
     }
+
+    public function showRegistrationForm(Request $request)
+    {
+        if ($request->session()->has(self::REFERRER_KEY)) {
+            $request->session()->keep(self::REFERRER_KEY);
+        } elseif ($request->has(self::REFERRER_KEY)) {
+            $request->session()->flash(self::REFERRER_KEY, $request->get(self::REFERRER_KEY));
+        }
+
+        return view('auth.register');
+    }
+
 
     /**
      * Get a validator for an incoming registration request.
@@ -66,6 +81,7 @@ class RegisterController extends Controller
     {
         $company = Company::create([
             'name' => $data['company'],
+            'referrer_id' => Session::pull(self::REFERRER_KEY),
         ]);
 
         $user = new User([
@@ -75,6 +91,10 @@ class RegisterController extends Controller
         ]);
 
         $user->company()->associate($company);
+
+        if (!$user->save()) {
+            abort(500, 'User registration failure.');
+        }
 
         return $user;
     }
