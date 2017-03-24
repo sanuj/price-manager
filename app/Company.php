@@ -8,6 +8,11 @@ class Company extends Model
 {
     use Concerns\Revisionable;
 
+    protected $fillable = [
+        'name',
+        'referrer_id',
+    ];
+
     public function referrer()
     {
         return $this->belongsTo(User::class);
