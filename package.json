@@ -21,6 +21,6 @@
     "vue": "^2.2.5"
   },
   "dependencies": {
-    "dusk-runner": "^0.1.0"
+    "dusk-runner": "^0.1.2"
   }
 }

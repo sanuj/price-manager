@@ -1625,7 +1625,13 @@ de-indent@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/de-indent/-/de-indent-1.0.2.tgz#b2038e846dc33baa5796128d0804b455b8c1e21d"
 
-debug@2, debug@^2.1.1, debug@^2.2.0, debug@^2.6.3:
+debug-logger@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/debug-logger/-/debug-logger-0.4.1.tgz#e33849c369e3cd361b50b299d71ca5224baa1ae1"
+  dependencies:
+    debug "^2.1.0"
+
+debug@2, debug@^2.1.0, debug@^2.1.1, debug@^2.2.0:
   version "2.6.3"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.3.tgz#0f7eb8c30965ec08c72accfa0130c8b79984141d"
   dependencies:
@@ -1851,13 +1857,13 @@ duplexify@^3.2.0:
     readable-stream "^2.0.0"
     stream-shift "^1.0.0"
 
-dusk-runner@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/dusk-runner/-/dusk-runner-0.1.0.tgz#b3020d01bdbbfb6fbc74de4683218df316223ca4"
+dusk-runner@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/dusk-runner/-/dusk-runner-0.1.2.tgz#8f56a00b2031288f294a35b1ce1bd6de38072a93"
   dependencies:
     commander "^2.9.0"
     cross-spawn "^5.1.0"
-    debug "^2.6.3"
+    debug-logger "^0.4.1"
 
 each-async@^1.0.0, each-async@^1.1.1:
   version "1.1.1"
