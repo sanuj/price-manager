@@ -5,6 +5,9 @@ machine:
     version: 7.6.0
   environment:
     DBUS_SESSION_BUS_ADDRESS: /dev/null
+  post:
+    - chromedriver:
+        background: true
 
 dependencies:
   pre:
