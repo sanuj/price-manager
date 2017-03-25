@@ -20,6 +20,13 @@ class CreateCompaniesTable extends Migration
 
             $table->foreign('referrer_id')->references('id')->on('users')->onDelete('SET NULL');
         });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('company_id')
+                  ->references('id')
+                  ->on('companies')
+                  ->onDelete('cascade');
+        });
     }
 
     /**
@@ -29,6 +36,9 @@ class CreateCompaniesTable extends Migration
      */
     public function down()
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['company_id']);
+        });
         Schema::dropIfExists('companies');
     }
 }

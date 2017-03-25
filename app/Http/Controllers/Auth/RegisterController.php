@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Company;
 use App\User;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Session;
 
 class RegisterController extends Controller
 {
@@ -20,6 +23,7 @@ class RegisterController extends Controller
     |
     */
 
+    const REFERRER_KEY = 'referrer';
     use RegistersUsers;
 
     /**
@@ -31,24 +35,36 @@ class RegisterController extends Controller
 
     /**
      * Create a new controller instance.
-     *
-     * @return void
      */
     public function __construct()
     {
         $this->middleware('guest');
     }
 
+    public function showRegistrationForm(Request $request)
+    {
+        if ($request->session()->has(self::REFERRER_KEY)) {
+            $request->session()->keep(self::REFERRER_KEY);
+        } elseif ($request->has(self::REFERRER_KEY)) {
+            $request->session()->flash(self::REFERRER_KEY, $request->get(self::REFERRER_KEY));
+        }
+
+        return view('auth.register');
+    }
+
+
     /**
      * Get a validator for an incoming registration request.
      *
-     * @param  array  $data
+     * @param  array $data
+     *
      * @return \Illuminate\Contracts\Validation\Validator
      */
     protected function validator(array $data)
     {
         return Validator::make($data, [
             'name' => 'required|max:255',
+            'company' => 'required|max:255',
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|min:6|confirmed',
         ]);
@@ -57,15 +73,29 @@ class RegisterController extends Controller
     /**
      * Create a new user instance after a valid registration.
      *
-     * @param  array  $data
+     * @param  array $data
+     *
      * @return User
      */
     protected function create(array $data)
     {
-        return User::create([
+        $company = Company::create([
+            'name' => $data['company'],
+            'referrer_id' => Session::pull(self::REFERRER_KEY),
+        ]);
+
+        $user = new User([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
+
+        $user->company()->associate($company);
+
+        if (!$user->save()) {
+            abort(500, 'User registration failure.');
+        }
+
+        return $user;
     }
 }
