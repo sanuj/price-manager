@@ -17,7 +17,6 @@ class RegistrationTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($user) {
             $browser->visit('/register?referrer='.$user->id)
-                    ->waitForText('Register')
                     ->type('name', 'John Doe')
                     ->type('company', 'Foo Company')
                     ->type('email', 'john@example.com')
