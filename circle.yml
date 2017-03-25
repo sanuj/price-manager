@@ -10,11 +10,14 @@ dependencies:
     - type -P yarn &> /dev/null || curl -o- -s -L https://yarnpkg.com/install.sh | bash
   override:
     - composer install --dev --no-interaction --no-progress
+    - yarn --no-progress
   cache_directories:
     - "~/.composer/cache"
+    - "~/.yarn-cache"
 
 test:
   override:
     - cp .env.example .env
     - php artisan key:generate
-    - php vendor/bin/phpunit
+    - yarn run test:dusk
+    - yarn run test:phpunit
