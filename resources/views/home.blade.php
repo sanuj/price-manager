@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('content')
+@section('body')
     <div id="app"></div>
     <!-- Scripts -->
     <script src="{{ mix('/js/app.js') }}"></script>

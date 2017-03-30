@@ -75,4 +75,8 @@ html {
 .bg-white {
   background: white;
 }
+
+.navbar {
+  border-bottom: 1px solid $border-color;
+}
 </style>
