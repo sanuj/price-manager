@@ -42,6 +42,8 @@
             <router-link class="dropdown-item" to="/strategies">Strategies</router-link>
             <router-link class="dropdown-item" to="/marketplaces">Marketplaces</router-link>
 
+            <div class="dropdown-divider"></div>
+
             <a class="dropdown-item" href="/logout" @click.prevent="$refs.logout.submit();">
               Logout
             </a>

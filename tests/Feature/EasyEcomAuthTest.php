@@ -29,6 +29,6 @@ class EasyEcomAuthTest extends TestCase
         config(['services.easyecom.secret' => $secret]);
         $response = $this->get('/login/services/easyecom?'.$query);
 
-        $response->assertRedirect('/home');
+        $response->assertRedirect('/dashboard');
     }
 }
