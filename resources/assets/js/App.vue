@@ -16,7 +16,20 @@
         <li class="nav-item">
           <router-link to="/dashboard" class="nav-link" active-class="active">Dashboard</router-link>
         </li>
+
+        <li class="nav-item">
+          <router-link to="/listings" class="nav-link" active-class="active">Listing</router-link>
+        </li>
+
+        <li class="nav-item">
+          <router-link to="/activity" class="nav-link" active-class="active">Activity</router-link>
+        </li>
+
+        <li class="nav-item">
+          <router-link to="/upload" class="nav-link" active-class="active">Upload</router-link>
+        </li>
       </ul>
+
       <ul class="navbar-nav ml-auto">
         <li class="dropdown nav-item" :class="{ show }" v-clickaway="() => show = false">
           <a href="#" class="nav-link dropdown-toggle"
@@ -25,6 +38,10 @@
           </a>
 
           <div class="dropdown-menu dropdown-menu-right">
+            <router-link class="dropdown-item" to="/reports">Reports</router-link>
+            <router-link class="dropdown-item" to="/strategies">Strategies</router-link>
+            <router-link class="dropdown-item" to="/marketplaces">Marketplaces</router-link>
+
             <a class="dropdown-item" href="/logout" @click.prevent="$refs.logout.submit();">
               Logout
             </a>
