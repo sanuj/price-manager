@@ -24,5 +24,6 @@ test:
   override:
     - cp .env.example .env
     - php artisan key:generate
+    - yarn run production
     - yarn run test:dusk
     - yarn run test:phpunit
