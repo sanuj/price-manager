@@ -12,7 +12,7 @@
     </a>
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav">
+      <ul class="navbar-nav flex-auto">
         <li class="nav-item">
           <router-link to="/dashboard" class="nav-link" active-class="active">Dashboard</router-link>
         </li>
@@ -27,6 +27,20 @@
 
         <li class="nav-item">
           <router-link to="/upload" class="nav-link" active-class="active">Upload</router-link>
+        </li>
+
+        <li class="nav-item flex-auto text-right">
+          <transition name="grow">
+            <Typeahead v-if="searching"
+                       v-model="search"
+                       v-clickaway="() => !search && (searching = false)"
+                       :suggestions="options"
+                       class="ml-auto global-search" autofocus/>
+          </transition>
+          <InputButton v-if="!searching" theme="link" class="global-search-toggle"
+                       @click.native="searching = true">
+            <icon type="search"/>
+          </InputButton>
         </li>
       </ul>
 
@@ -69,14 +83,21 @@
 </div>
 </template>
 
-<script lang="babel">
+<script>
 import { directive as clickaway } from 'vue-clickaway'
 import { mapGetters } from 'vuex'
 
 export default {
-  data: () => ({ show: false }),
+  data: () => ({ show: false, search: '', searching: false }),
 
-  computed: mapGetters(['user', 'errors', 'csrfToken']),
+  computed: {
+
+    options () {
+      return []
+    },
+
+    ... mapGetters(['user', 'errors', 'csrfToken'])
+  },
 
   directives: { clickaway }
 }
@@ -85,6 +106,7 @@ export default {
 <style lang="scss">
 @import "../sass/variables";
 @import "~bootstrap/scss/bootstrap";
+@import "~font-awesome/scss/font-awesome";
 @import "~bootstrap-for-vue/dist/scss/bootstrap-for-vue";
 
 html {
@@ -97,5 +119,45 @@ html {
 
 .navbar {
   border-bottom: 1px solid $border-color;
+}
+
+.flex-auto {
+  flex: 1;
+}
+
+// Local Styles
+.grow {
+  &-enter-active {
+    animation: grow .2s;
+    transform-origin: right;
+  }
+
+  &-leave-active {
+    animation: shrink .2s;
+  }
+}
+
+@keyframes grow {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0;
+  }
+}
+
+.global-search + .global-search-toggle {
+  display: none;
 }
 </style>

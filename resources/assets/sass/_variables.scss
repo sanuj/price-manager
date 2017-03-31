@@ -33,3 +33,6 @@ $btn-default-color: $text-color;
 $input-border: lighten($text-color, 40%);
 $input-border-focus: lighten($brand-primary, 25%);
 $input-color-placeholder: lighten($text-color, 30%);
+
+// Font-Awesome
+$fa-font-path: '../../../node_modules/font-awesome/fonts';
