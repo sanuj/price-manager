@@ -16,6 +16,7 @@ dependencies:
   override:
     - composer install --dev --no-interaction --no-progress
     - yarn --no-progress
+    - npm rebuild node-sass # binary missing issue.
   cache_directories:
     - "~/.composer/cache"
     - "~/.yarn-cache"
@@ -24,5 +25,6 @@ test:
   override:
     - cp .env.example .env
     - php artisan key:generate
+    - yarn run dev
     - yarn run test:dusk
     - yarn run test:phpunit

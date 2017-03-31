@@ -1,22 +1,13 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
-Route::get('/', function () {
-    return view('welcome');
-});
-
 Auth::routes();
 Route::get('/login/services/easyecom', 'Auth\LoginController@loginWithEasyECom');
 
-Route::get('/home', 'HomeController@index');
+Route::get('/', 'HomeController@index');
+
+// NOTE: **This should be last in list. It captures everything.**
+Route::group(['middleware' => 'auth'], function () {
+    Route::get('/{anything}', 'DashboardController@index')
+         ->where('anything', '^(?!(api|attach|app|icon|img)).*$');
+});
 

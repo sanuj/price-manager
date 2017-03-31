@@ -8,3 +8,9 @@ Homestead.json
 Homestead.yaml
 .env
 /database/testing.sqlite
+
+# Ignore build files.
+/public/js
+/public/css
+/public/fonts
+/public/mix-manifest.json
