@@ -16,6 +16,7 @@ dependencies:
   override:
     - composer install --dev --no-interaction --no-progress
     - yarn --no-progress
+    - npm rebuild node-sass # binary missing issue.
   cache_directories:
     - "~/.composer/cache"
     - "~/.yarn-cache"
