@@ -166,8 +166,7 @@ return [
         /*
          * Package Service Providers...
          */
-        Laravel\Tinker\TinkerServiceProvider::class,
-        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
+        Znck\Transform\TransformServiceProvider::class,
 
         /*
          * Application Service Providers...

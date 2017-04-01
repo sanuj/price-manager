@@ -1,7 +1,8 @@
 <template lang="html">
+<div>Hello!</div>
 </template>
 
-<script lang="babel">
+<script>
 export default {
   name: 'Dashboard',
 }

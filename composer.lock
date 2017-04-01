@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "885b47f07b463013904ff8afc201ad26",
-    "content-hash": "002314818bc130124d46bc20389d2df8",
+    "hash": "8ba8d57873419db85d16627d46d2b793",
+    "content-hash": "249243a52cfef04795f67dd72dbc96a5",
     "packages": [
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -1862,6 +1862,46 @@
                 "environment"
             ],
             "time": "2016-09-01 10:05:43"
+        },
+        {
+            "name": "znck/transform",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/znck/transform.git",
+                "reference": "a437f7b3c86df68767c4c8b976908b066e468765"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/znck/transform/zipball/a437f7b3c86df68767c4c8b976908b066e468765",
+                "reference": "a437f7b3c86df68767c4c8b976908b066e468765",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^5.4",
+                "illuminate/http": "^5.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Znck\\Transform\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Rahul Kadyan",
+                    "email": "hi@znck.me"
+                }
+            ],
+            "description": "An auto transformer for Eloquent.",
+            "time": "2017-04-01 08:42:32"
         }
     ],
     "packages-dev": [
@@ -4020,7 +4060,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "znck/transform": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

@@ -11,6 +11,7 @@ class AppServiceProvider extends ServiceProvider
     ];
 
     protected $local = [
+        \Laravel\Tinker\TinkerServiceProvider::class,
         \Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
     ];
 
