@@ -2,6 +2,7 @@
 
 namespace App\Managers;
 
+use App\Drivers\Marketplace\AmazonIndiaDriver;
 use Illuminate\Support\Manager;
 
 class MarketplaceManager extends Manager
@@ -16,7 +17,8 @@ class MarketplaceManager extends Manager
         return config('marketplace.default');
     }
 
-    public function createAmazonInDriver() {
-
+    public function createAmazonInDriver()
+    {
+        return new AmazonIndiaDriver(config('marketplace.connections.amazon-in'));
     }
 }
