@@ -11,4 +11,9 @@ use Znck\Transform\AutoResponderTrait;
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests, AutoResponderTrait;
+
+    protected function accepted()
+    {
+        return response('', 202);
+    }
 }
