@@ -4,10 +4,12 @@ namespace App;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Znck\Trust\Contracts\Permissible as PermissibleContract;
+use Znck\Trust\Traits\Permissible;
 
-class User extends Authenticatable
+class User extends Authenticatable implements PermissibleContract
 {
-    use Notifiable;
+    use Notifiable, Permissible;
 
     /**
      * The attributes that are mass assignable.

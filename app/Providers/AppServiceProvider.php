@@ -52,7 +52,7 @@ class AppServiceProvider extends ServiceProvider
         $this->registerRepositories();
     }
 
-    protected function registerRepositories(): void
+    protected function registerRepositories()
     {
         $repositories = [
             CompanyProductRepositoryContract::class => CompanyProductRepository::class,

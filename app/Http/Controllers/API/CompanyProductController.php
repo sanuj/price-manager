@@ -26,18 +26,18 @@ class CompanyProductController extends Controller
         $this->repository = $repository;
     }
 
-    public function index(Company $company)
+    public function index(Request $request)
     {
         $this->authorize('read', CompanyProduct::class);
 
-        return $this->repository->listForCompany($company);
+        return $this->repository->listForCompany($request->user()->company);
     }
 
-    public function store(Request $request, Company $company)
+    public function store(Request $request)
     {
         $this->authorize('create', CompanyProduct::class);
 
-        return $this->repository->createForCompany($company, $request->input());
+        return $this->repository->createForCompany($request->user()->company, $request->input());
     }
 
     public function update(Request $request, CompanyProduct $product)
