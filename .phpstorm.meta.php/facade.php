@@ -1,7 +1,7 @@
 <?php
 /**
  * A helper file for Laravel 5, to provide autocomplete information to your IDE
- * Generated for Laravel 5.4.16 on 2017-03-24.
+ * Generated for Laravel 5.4.16 on 2017-04-05.
  *
  * @author Barry vd. Heuvel <barryvdh@gmail.com>
  * @see https://github.com/barryvdh/laravel-ide-helper
@@ -11375,6 +11375,101 @@ namespace Illuminate\Support\Facades {
     }         
 }
     
+namespace Znck\Transform\Facades {
+
+    class Transform {
+        
+        /**
+         * Transform anything!
+         *
+         * @param \Eloquent|\Znck\Transform\EloquentCollection|\Znck\Transform\Collection|\Znck\Transform\Paginator $any
+         * @param array|null $fields
+         * @return array|mixed 
+         * @static 
+         */
+        public static function transform($any, $fields = null)
+        {
+            return \Znck\Transform\Transformer::transform($any, $fields);
+        }
+        
+        /**
+         * Transform an eloquent model.
+         *
+         * @param \Illuminate\Database\Eloquent\Model $model
+         * @param array|null $fields
+         * @return array 
+         * @static 
+         */
+        public static function transformModel($model, $fields = null)
+        {
+            return \Znck\Transform\Transformer::transformModel($model, $fields);
+        }
+        
+        /**
+         * Transform an eloquent collection.
+         *
+         * @param \Illuminate\Database\Eloquent\Collection $models
+         * @param array|null $fields
+         * @return array 
+         * @static 
+         */
+        public static function transformEloquentCollection($models, $fields = null)
+        {
+            return \Znck\Transform\Transformer::transformEloquentCollection($models, $fields);
+        }
+        
+        /**
+         * Transform arbitrary collection.
+         *
+         * @param \Illuminate\Support\Collection $items
+         * @param array|null $fields
+         * @return array 
+         * @static 
+         */
+        public static function transformCollection($items, $fields = null)
+        {
+            return \Znck\Transform\Transformer::transformCollection($items, $fields);
+        }
+        
+        /**
+         * Transform any paginator.
+         *
+         * @param \Illuminate\Contracts\Pagination\Paginator $any
+         * @param array|null $fields
+         * @return array 
+         * @static 
+         */
+        public static function transformPaginator($any, $fields = null)
+        {
+            return \Znck\Transform\Transformer::transformPaginator($any, $fields);
+        }
+        
+        /**
+         * Transform paginator meta.
+         *
+         * @param \Illuminate\Contracts\Pagination\Paginator $paginator
+         * @return array 
+         * @static 
+         */
+        public static function transformPaginatorMeta($paginator)
+        {
+            return \Znck\Transform\Transformer::transformPaginatorMeta($paginator);
+        }
+        
+        /**
+         * Relations to eager load.
+         *
+         * @return array 
+         * @static 
+         */
+        public static function relations()
+        {
+            return \Znck\Transform\Transformer::relations();
+        }
+        
+    }         
+}
+    
     
 namespace {
 
@@ -13400,6 +13495,8 @@ namespace {
             return \Illuminate\Database\Query\Builder::macroCall($method, $parameters);
         }
         }
+    
+    class Transformer extends \Znck\Transform\Facades\Transform {}
     
 }
 
