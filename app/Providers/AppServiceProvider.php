@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Contracts\Repositories\CompanyProductRepositoryContract;
+use App\Managers\MarketplaceManager;
+use App\Repositories\CompanyProductRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -37,10 +40,26 @@ class AppServiceProvider extends ServiceProvider
                 $this->app->register($provider);
             }
         }
+
         if ($this->app->environment('local')) {
             foreach ($this->local as $provider) {
                 $this->app->register($provider);
             }
+        }
+
+        $this->app->singleton(MarketplaceManager::class);
+
+        $this->registerRepositories();
+    }
+
+    protected function registerRepositories(): void
+    {
+        $repositories = [
+            CompanyProductRepositoryContract::class => CompanyProductRepository::class,
+        ];
+
+        foreach ($repositories as $abstract => $concrete) {
+            $this->app->singleton($abstract, $concrete);
         }
     }
 }

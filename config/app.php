@@ -167,6 +167,7 @@ return [
          * Package Service Providers...
          */
         Znck\Transform\TransformServiceProvider::class,
+        Znck\Trust\TrustServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -226,6 +227,8 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
 
+        // Third Party Facades
+        'Transformer' => Znck\Transform\Facades\Transform::class,
     ],
 
 ];
