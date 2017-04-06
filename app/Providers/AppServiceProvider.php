@@ -7,7 +7,9 @@ use App\Contracts\Repositories\MarketplaceRepositoryContract;
 use App\Managers\MarketplaceManager;
 use App\Repositories\CompanyProductRepository;
 use App\Repositories\MarketplaceRepository;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
+use Transformer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,7 +29,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Transformer::register(function (Model $model) {
+            return [
+                'id' => $model->getKey(),
+                '_type' => $model->getMorphClass(),
+            ];
+        });
     }
 
     /**

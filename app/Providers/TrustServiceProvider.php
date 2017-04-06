@@ -3,13 +3,13 @@
 namespace App\Providers;
 
 use App\{
-    Company, CompanyProduct
+    CompanyProduct, Marketplace
 };
 
 class TrustServiceProvider extends \Znck\Trust\TrustServiceProvider
 {
     protected $models = [
-        Company::class,
         CompanyProduct::class,
+        Marketplace::class,
     ];
 }

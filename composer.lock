@@ -1909,12 +1909,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/znck/transform.git",
-                "reference": "df9a02160037198cc3f92905475ec94bb65cf9cf"
+                "reference": "4e65b7124235f9cbaddfa8c91866806578f63e16"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/znck/transform/zipball/df9a02160037198cc3f92905475ec94bb65cf9cf",
-                "reference": "df9a02160037198cc3f92905475ec94bb65cf9cf",
+                "url": "https://api.github.com/repos/znck/transform/zipball/4e65b7124235f9cbaddfa8c91866806578f63e16",
+                "reference": "4e65b7124235f9cbaddfa8c91866806578f63e16",
                 "shasum": ""
             },
             "require": {
@@ -1941,7 +1941,7 @@
                 }
             ],
             "description": "An auto transformer for Eloquent.",
-            "time": "2017-04-05 11:00:55"
+            "time": "2017-04-06 11:46:18"
         },
         {
             "name": "znck/trust",

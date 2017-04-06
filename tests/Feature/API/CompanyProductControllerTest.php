@@ -18,21 +18,13 @@ class CompanyProductControllerTest extends TestCase
 
         $response = $this->actingAs($this->getUser())
                          ->givePermissionTo('company_product.read')
-                         ->get('/api/products?'.http_build_query([
-                                 '_schema' => [
-                                     'products' => [
-                                         'id' => true,
-                                     ],
-                                 ],
-                             ]));
+                         ->get('/api/company/products');
 
         $response->assertJsonStructure([
-            'products' => [
-                '0' => ['id'],
-                '1' => ['id'],
-                '2' => ['id'],
-                '_meta' => ['paginator'],
-            ],
+            '0' => ['id'],
+            '1' => ['id'],
+            '2' => ['id'],
+            '_meta' => ['paginator'],
         ]);
     }
 
@@ -45,7 +37,7 @@ class CompanyProductControllerTest extends TestCase
 
         $response = $this->actingAs($this->getUser())
                          ->givePermissionTo('company_product.create')
-                         ->postJson('/api/products', $attributes);
+                         ->postJson('/api/company/products', $attributes);
 
         $response->assertStatus(200)->assertJson([]);
         $this->assertDatabaseHas('company_products', $attributes);
@@ -61,7 +53,7 @@ class CompanyProductControllerTest extends TestCase
 
         $response = $this->actingAs($this->getUser())
                          ->givePermissionTo('company_product.update')
-                         ->putJson('/api/products/'.$product->getKey(), $attributes);
+                         ->putJson('/api/company/products/'.$product->getKey(), $attributes);
 
         $response->assertStatus(200)->assertJson([]);
         $this->assertDatabaseHas('company_products', $attributes);
@@ -74,7 +66,7 @@ class CompanyProductControllerTest extends TestCase
 
         $response = $this->actingAs($this->getUser())
                          ->givePermissionTo('company_product.delete')
-                         ->delete('/api/products/'.$product->getKey());
+                         ->delete('/api/company/products/'.$product->getKey());
 
         $response->assertStatus(202);
         $this->assertDatabaseMissing('company_products', ['id' => $product->getKey()]);

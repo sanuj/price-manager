@@ -22,11 +22,7 @@ class MarketplaceRepository implements MarketplaceRepositoryContract
      */
     public function listForCompany(Company $company)
     {
-        return $company->with(array_map(function ($any) {
-            return 'marketplaces.'.$any;
-        }, Transformer::relations()))
-                       ->marketplaces()
-                       ->paginate();
+        return $company->marketplaces()->paginate();
     }
 
     /**
@@ -40,7 +36,13 @@ class MarketplaceRepository implements MarketplaceRepositoryContract
     public function createForCompany(Company $company, array $attributes): CompanyMarketplace
     {
         Validator::validate($attributes, [
-            'marketplace_id' => ['bail', 'required', Rule::exists('marketplaces', 'id')],
+            'marketplace_id' => [
+                'bail',
+                'required',
+                Rule::exists('marketplaces', 'id'),
+                Rule::unique('company_marketplace')->where('company_id', $company->getKey()),
+            ],
+            'credentials' => 'required|array',
         ]);
 
         $marketplace = Marketplace::find($attributes['marketplace_id']);
@@ -69,9 +71,12 @@ class MarketplaceRepository implements MarketplaceRepositoryContract
      */
     public function updateForCompany(Company $company, Marketplace $marketplace, array $attributes): CompanyMarketplace
     {
-        $pivot = CompanyMarketplace::whereCompanyId($company->getKey())
-                                   ->whereMarketplaceId($marketplace->getKey())
-                                   ->firstOrFail();
+        Validator::validate($attributes, ['credentials' => 'required|array']);
+
+        /** @var \App\CompanyMarketplace $pivot */
+        $pivot = $company->marketplaces()
+                         ->where('marketplace_id', $marketplace->getKey())
+                         ->firstOrFail()->pivot;
 
         $pivot->fill($attributes);
 
@@ -92,9 +97,9 @@ class MarketplaceRepository implements MarketplaceRepositoryContract
      */
     public function deleteForCompany(Company $company, Marketplace $marketplace)
     {
-        $pivot = CompanyMarketplace::whereCompanyId($company->getKey())
-                                   ->whereMarketplaceId($marketplace->getKey())
-                                   ->firstOrFail();
+        $pivot = $company->marketplaces()
+                         ->where('marketplace_id', $marketplace->getKey())
+                         ->firstOrFail()->pivot;
 
         if (!$pivot->delete()) {
             abort(500);

@@ -20,6 +20,9 @@ class Company extends Model
 
     public function marketplaces()
     {
-        return $this->belongsToMany(Marketplace::class)->using(CompanyMarketplace::class);
+        return $this->belongsToMany(Marketplace::class)
+                    ->withPivot('id', 'credentials')
+                    ->withTimestamps()
+                    ->using(CompanyMarketplace::class);
     }
 }

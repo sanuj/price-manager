@@ -9,6 +9,8 @@ class CompanyMarketplace extends Pivot
 {
     protected $table = 'company_marketplace';
 
+    protected $fillable = ['credentials'];
+
     protected $guarded = ['credentials'];
 
     protected $decryptedCredentials;
@@ -22,11 +24,13 @@ class CompanyMarketplace extends Pivot
         return $this->decryptedCredentials;
     }
 
-    public function setCredentialsAttribute(array $credentials)
+    public function setCredentialsAttribute($credentials)
     {
-        dump($credentials);
-
-        $this->attributes['credentials'] = encrypt(json_encode($credentials));
+        if (is_string($credentials)) {
+            $this->attributes['credentials'] = $credentials;
+        } else {
+            $this->attributes['credentials'] = encrypt(json_encode($credentials));
+        }
         $this->decryptedCredentials = null;
     }
 

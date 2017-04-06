@@ -11380,6 +11380,16 @@ namespace Znck\Transform\Facades {
     class Transform {
         
         /**
+         * 
+         *
+         * @static 
+         */
+        public static function register($handler)
+        {
+            return \Znck\Transform\Transformer::register($handler);
+        }
+        
+        /**
          * Transform anything!
          *
          * @param \Eloquent|\Znck\Transform\EloquentCollection|\Znck\Transform\Collection|\Znck\Transform\Paginator $any

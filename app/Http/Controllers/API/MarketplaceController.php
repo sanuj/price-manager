@@ -31,7 +31,7 @@ class MarketplaceController extends Controller
         return $this->repository->listForCompany($request->user()->company);
     }
 
-    public function create(Request $request)
+    public function store(Request $request)
     {
         $this->authorize('create', Marketplace::class);
 
@@ -45,7 +45,7 @@ class MarketplaceController extends Controller
         return $this->repository->updateForCompany($request->user()->company, $marketplace, $request->input());
     }
 
-    public function destroy(Marketplace $marketplace)
+    public function destroy(Request $request, Marketplace $marketplace)
     {
         $this->authorize('delete', $marketplace);
 
