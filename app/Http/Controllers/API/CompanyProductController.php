@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Company;
 use App\CompanyProduct;
 use App\Contracts\Repositories\CompanyProductRepositoryContract;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 
 class CompanyProductController extends Controller
 {
     /**
-     * @var \App\Contracts\Repositories\CompanyProductRepositoryContract
+     * @var CompanyProductRepositoryContract
      */
     protected $repository;
 
@@ -19,7 +18,7 @@ class CompanyProductController extends Controller
     /**
      * CompanyProductController constructor.
      *
-     * @param \App\Contracts\Repositories\CompanyProductRepositoryContract $repository
+     * @param CompanyProductRepositoryContract $repository
      */
     public function __construct(CompanyProductRepositoryContract $repository)
     {
@@ -47,7 +46,7 @@ class CompanyProductController extends Controller
         return $this->repository->update($product, $request->input());
     }
 
-    public function delete(CompanyProduct $product)
+    public function destroy(CompanyProduct $product)
     {
         $this->authorize('delete', $product);
 

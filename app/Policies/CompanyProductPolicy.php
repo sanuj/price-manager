@@ -26,6 +26,6 @@ class CompanyProductPolicy
     public function delete(User $user, CompanyProduct $product)
     {
         return $user->company_id === $product->company_id
-               and trust($user)->to('company_product.update');
+               and trust($user)->to('company_product.delete');
     }
 }

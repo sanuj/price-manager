@@ -3,8 +3,11 @@
 namespace App\Exceptions;
 
 use Exception;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Validation\ValidationException;
+use Response;
+use Symfony\Component\Debug\Exception\FlattenException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -24,10 +27,10 @@ class Handler extends ExceptionHandler
 
     /**
      * Report or log an exception.
-     *
      * This is a great spot to send exceptions to Sentry, Bugsnag, etc.
      *
-     * @param  \Exception  $exception
+     * @param  \Exception $exception
+     *
      * @return void
      */
     public function report(Exception $exception)
@@ -38,28 +41,59 @@ class Handler extends ExceptionHandler
     /**
      * Render an exception into an HTTP response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $exception
-     * @return \Illuminate\Http\Response
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Exception $exception
+     *
+     * @return \Illuminate\Http\Response|mixed
      */
     public function render($request, Exception $exception)
     {
+        if ($request->is('api/*')) {
+            return $this->renderForApi($request, $exception);
+        }
+
         return parent::render($request, $exception);
     }
 
-    /**
-     * Convert an authentication exception into an unauthenticated response.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Illuminate\Auth\AuthenticationException  $exception
-     * @return \Illuminate\Http\Response
-     */
-    protected function unauthenticated($request, AuthenticationException $exception)
+    protected function unauthenticated()
     {
-        if ($request->expectsJson()) {
-            return response()->json(['error' => 'Unauthenticated.'], 401);
+        return redirect()->guest(route('login'));
+    }
+
+    /**
+     * Render an exception into an HTTP response.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Exception $exception
+     *
+     * @return \Illuminate\Http\Response|mixed
+     */
+    protected function renderForApi($request, Exception $exception)
+    {
+        $exception = $this->prepareException($exception);
+
+        if ($exception instanceof ValidationException) {
+            return Response::json([
+                'status' => 422,
+                'message' => 'There is some problem with your input.',
+                'errors' => $exception->validator->getMessageBag()->toArray(),
+            ], 422);
+        } elseif ($exception instanceof HttpException) {
+            return Response::json([
+                'status' => $exception->getStatusCode(),
+                'message' => $exception->getMessage(),
+            ], $exception->getStatusCode());
+        } elseif (!app()->environment('production')) {
+            return Response::json([
+                'status' => $exception->getCode(),
+                'message' => $exception->getMessage(),
+                'trace' => FlattenException::create($exception)->toArray(),
+            ], 500);
         }
 
-        return redirect()->guest(route('login'));
+        return Response::json([
+            'status' => 500,
+            'message' => 'Unknown error! Try again after some time.',
+        ], 500);
     }
 }

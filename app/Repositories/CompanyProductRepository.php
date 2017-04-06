@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Company;
 use App\CompanyProduct;
 use App\Contracts\Repositories\CompanyProductRepositoryContract;
+use Illuminate\Validation\Rule;
 use Request as Input;
 use Transformer;
 use Validator;
@@ -21,9 +22,15 @@ class CompanyProductRepository implements CompanyProductRepositoryContract
 
     public function createForCompany(Company $company, array $attributes): CompanyProduct
     {
-        if (Validator::make($attributes, [])->fails()) {
-            // Throw validation error!
-        }
+        Validator::validate($attributes, [
+            'sku' => [
+                'bail',
+                'required',
+                'max:255',
+                Rule::unique('company_products')->where('company_id', $company->getKey()),
+            ],
+            'name' => 'required|max:255',
+        ]);
 
         $product = new CompanyProduct($attributes);
 
@@ -31,6 +38,7 @@ class CompanyProductRepository implements CompanyProductRepositoryContract
 
         if (!$product->save()) {
             // Throw create error.
+            abort(500);
         }
 
         return $product;
@@ -38,12 +46,19 @@ class CompanyProductRepository implements CompanyProductRepositoryContract
 
     public function update(CompanyProduct $product, array $attributes): CompanyProduct
     {
-        if (Validator::make($attributes, [])->fails()) {
-            // Throw validation error.
-        }
+        Validator::validate($attributes, array_only([
+            'sku' => [
+                'bail',
+                'required',
+                'max:255',
+                Rule::unique('company_products')->where('company_id', $product->company_id)->ignore($product->getKey()),
+            ],
+            'name' => 'required|max:255',
+        ], array_keys($attributes)));
 
         if (!$product->update($attributes)) {
             // Throw update error.
+            abort(500);
         }
 
         return $product;
