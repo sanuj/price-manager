@@ -3,7 +3,7 @@ namespace PHPSTORM_META {
 
    /**
     * PhpStorm Meta file, to provide autocomplete information for PhpStorm
-    * Generated on 2017-04-05.
+    * Generated on 2017-04-06.
     *
     * @author Barry vd. Heuvel <barryvdh@gmail.com>
     * @see https://github.com/barryvdh/laravel-ide-helper
@@ -39,6 +39,13 @@ namespace PHPSTORM_META {
             'view' instanceof \Illuminate\View\Factory,
             'view.finder' instanceof \Illuminate\View\FileViewFinder,
             'view.engine.resolver' instanceof \Illuminate\View\Engines\EngineResolver,
+            'Znck\Trust\Contracts\Role' instanceof \Znck\Trust\Models\Role,
+            'Znck\Trust\Contracts\Permission' instanceof \Znck\Trust\Models\Permission,
+            'Znck\Trust\Trust' instanceof \Znck\Trust\Trust,
+            'trust.permissions' instanceof \Illuminate\Support\Collection,
+            'trust.roles' instanceof \Illuminate\Support\Collection,
+            'command.trust.permissions' instanceof \Znck\Trust\Console\Commands\InstallPermissionsCommand,
+            'command.trust.roles' instanceof \Znck\Trust\Console\Commands\InstallRolesCommand,
             'command.tinker' instanceof \Laravel\Tinker\Console\TinkerCommand,
             'command.ide-helper.generate' instanceof \Barryvdh\LaravelIdeHelper\Console\GeneratorCommand,
             'command.ide-helper.models' instanceof \Barryvdh\LaravelIdeHelper\Console\ModelsCommand,
@@ -161,6 +168,13 @@ namespace PHPSTORM_META {
             'view' instanceof \Illuminate\View\Factory,
             'view.finder' instanceof \Illuminate\View\FileViewFinder,
             'view.engine.resolver' instanceof \Illuminate\View\Engines\EngineResolver,
+            'Znck\Trust\Contracts\Role' instanceof \Znck\Trust\Models\Role,
+            'Znck\Trust\Contracts\Permission' instanceof \Znck\Trust\Models\Permission,
+            'Znck\Trust\Trust' instanceof \Znck\Trust\Trust,
+            'trust.permissions' instanceof \Illuminate\Support\Collection,
+            'trust.roles' instanceof \Illuminate\Support\Collection,
+            'command.trust.permissions' instanceof \Znck\Trust\Console\Commands\InstallPermissionsCommand,
+            'command.trust.roles' instanceof \Znck\Trust\Console\Commands\InstallRolesCommand,
             'command.tinker' instanceof \Laravel\Tinker\Console\TinkerCommand,
             'command.ide-helper.generate' instanceof \Barryvdh\LaravelIdeHelper\Console\GeneratorCommand,
             'command.ide-helper.models' instanceof \Barryvdh\LaravelIdeHelper\Console\ModelsCommand,
@@ -283,6 +297,13 @@ namespace PHPSTORM_META {
             'view' instanceof \Illuminate\View\Factory,
             'view.finder' instanceof \Illuminate\View\FileViewFinder,
             'view.engine.resolver' instanceof \Illuminate\View\Engines\EngineResolver,
+            'Znck\Trust\Contracts\Role' instanceof \Znck\Trust\Models\Role,
+            'Znck\Trust\Contracts\Permission' instanceof \Znck\Trust\Models\Permission,
+            'Znck\Trust\Trust' instanceof \Znck\Trust\Trust,
+            'trust.permissions' instanceof \Illuminate\Support\Collection,
+            'trust.roles' instanceof \Illuminate\Support\Collection,
+            'command.trust.permissions' instanceof \Znck\Trust\Console\Commands\InstallPermissionsCommand,
+            'command.trust.roles' instanceof \Znck\Trust\Console\Commands\InstallRolesCommand,
             'command.tinker' instanceof \Laravel\Tinker\Console\TinkerCommand,
             'command.ide-helper.generate' instanceof \Barryvdh\LaravelIdeHelper\Console\GeneratorCommand,
             'command.ide-helper.models' instanceof \Barryvdh\LaravelIdeHelper\Console\ModelsCommand,
@@ -405,6 +426,13 @@ namespace PHPSTORM_META {
             'view' instanceof \Illuminate\View\Factory,
             'view.finder' instanceof \Illuminate\View\FileViewFinder,
             'view.engine.resolver' instanceof \Illuminate\View\Engines\EngineResolver,
+            'Znck\Trust\Contracts\Role' instanceof \Znck\Trust\Models\Role,
+            'Znck\Trust\Contracts\Permission' instanceof \Znck\Trust\Models\Permission,
+            'Znck\Trust\Trust' instanceof \Znck\Trust\Trust,
+            'trust.permissions' instanceof \Illuminate\Support\Collection,
+            'trust.roles' instanceof \Illuminate\Support\Collection,
+            'command.trust.permissions' instanceof \Znck\Trust\Console\Commands\InstallPermissionsCommand,
+            'command.trust.roles' instanceof \Znck\Trust\Console\Commands\InstallRolesCommand,
             'command.tinker' instanceof \Laravel\Tinker\Console\TinkerCommand,
             'command.ide-helper.generate' instanceof \Barryvdh\LaravelIdeHelper\Console\GeneratorCommand,
             'command.ide-helper.models' instanceof \Barryvdh\LaravelIdeHelper\Console\ModelsCommand,
