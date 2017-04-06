@@ -51,7 +51,7 @@ class CompanyProductController extends Controller
         $this->authorize('delete', $product);
 
         if (!$product->delete()) {
-            // Throw delete failed.
+            abort(500);
         }
 
         return $this->accepted();
