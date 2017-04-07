@@ -15,6 +15,7 @@ class CreateMarketplaceListingsTable extends Migration
         Schema::create('marketplace_listings', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('marketplace_id')->unsigned();
+            $table->integer('company_id')->unsigned();
             $table->bigInteger('company_product_id')->unsigned();
 
             // Product identification on Marketplace.
@@ -38,6 +39,7 @@ class CreateMarketplaceListingsTable extends Migration
             $table->timestamps();
 
             $table->foreign('marketplace_id')->references('id')->on('marketplaces')->onDelete('cascade');
+            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
             $table->foreign('company_product_id')->references('id')->on('company_products')->onDelete('cascade');
         });
     }

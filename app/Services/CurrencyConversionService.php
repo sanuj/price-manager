@@ -4,7 +4,7 @@ namespace App\Services;
 
 use InvalidArgumentException;
 
-class CurrencyConverter
+class CurrencyConversionService
 {
     protected $from = 'INR';
 

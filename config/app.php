@@ -229,6 +229,10 @@ return [
 
         // Third Party Facades
         'Transformer' => Znck\Transform\Facades\Transform::class,
+
+        // First Party Facades
+        'Currency' => App\Facades\Currency::class,
+        'Reprice' => App\Facades\Reprice::class,
     ],
 
 ];

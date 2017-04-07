@@ -11480,6 +11480,57 @@ namespace Znck\Transform\Facades {
     }         
 }
     
+namespace App\Facades {
+
+    class Currency {
+        
+        /**
+         * 
+         *
+         * @static 
+         */
+        public static function from($from)
+        {
+            return \App\Services\CurrencyConversionService::from($from);
+        }
+        
+        /**
+         * 
+         *
+         * @static 
+         */
+        public static function to($to)
+        {
+            return \App\Services\CurrencyConversionService::to($to);
+        }
+        
+        /**
+         * 
+         *
+         * @static 
+         */
+        public static function convert($amount)
+        {
+            return \App\Services\CurrencyConversionService::convert($amount);
+        }
+        
+    }         
+
+    class Reprice {
+        
+        /**
+         * 
+         *
+         * @static 
+         */
+        public static function reprice($listing)
+        {
+            return \App\Services\RepriceService::reprice($listing);
+        }
+        
+    }         
+}
+    
     
 namespace {
 
@@ -13507,6 +13558,10 @@ namespace {
         }
     
     class Transformer extends \Znck\Transform\Facades\Transform {}
+    
+    class Currency extends \App\Facades\Currency {}
+    
+    class Reprice extends \App\Facades\Reprice {}
     
 }
 

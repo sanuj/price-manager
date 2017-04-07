@@ -103,6 +103,7 @@ namespace App{
  *
  * @property int $id
  * @property int $marketplace_id
+ * @property int $company_id
  * @property int $company_product_id
  * @property string $uid
  * @property string $sku
@@ -118,10 +119,12 @@ namespace App{
  * @property float $marketplace_max_price
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
+ * @property-read \App\Company $company
  * @property-read \App\CompanyProduct $companyProduct
  * @property-read \App\Marketplace $marketplace
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\PriceSnapshot[] $priceSnapshots
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Revision[] $revisions
+ * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereCompanyId($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereCompanyProductId($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereCostPrice($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereCreatedAt($value)

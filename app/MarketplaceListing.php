@@ -43,6 +43,11 @@ class MarketplaceListing extends Model
         return $this->belongsTo(CompanyProduct::class);
     }
 
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function priceSnapshots()
     {
         return $this->hasMany(PriceSnapshot::class);

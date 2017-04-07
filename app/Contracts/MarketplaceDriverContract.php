@@ -6,5 +6,7 @@ interface MarketplaceDriverContract
 {
     public function setPrice(string $id, float $price, array $options = []);
 
-    public function use (Marketplace $marketplace): self;
+    public function setPriceMultiple(array $payload);
+
+    public function use (Marketplace $marketplace, array $credentials = []): self;
 }

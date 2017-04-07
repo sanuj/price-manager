@@ -56,6 +56,7 @@ class MarketplaceListingRepository implements MarketplaceListingRepositoryContra
 
         $listing = new MarketplaceListing($attributes);
 
+        $listing->company()->associate($product->company_id);
         $listing->marketplace()->associate($marketplace);
         $listing->companyProduct()->associate($product);
 

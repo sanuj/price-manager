@@ -19,6 +19,11 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     protected $marketplace;
 
     /**
+     * @var array
+     */
+    protected $credentials;
+
+    /**
      * AmazonIndiaDriver constructor.
      *
      * @param array $config
@@ -36,9 +41,15 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         // TODO: Implement setPrice() method.
     }
 
-    public function use (Marketplace $marketplace): MarketplaceDriverContract
+    public function setPriceMultiple(array $payload)
+    {
+        // TODO: Implement bulk setPrice method.
+    }
+
+    public function use (Marketplace $marketplace, array $credentials = []): MarketplaceDriverContract
     {
         $this->marketplace = $marketplace;
+        $this->credentials = $credentials;
 
         return $this;
     }

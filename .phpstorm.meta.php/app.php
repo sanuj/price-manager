@@ -1,22 +1,11 @@
 <?php
+namespace App\Managers {
 
-namespace App\Facades {
-
-    class Currency
+    /**
+     * @method \App\Contracts\MarketplaceDriverContract driver(string $name = null)
+     */
+    class MarketplaceManager
     {
-        static public function from(string $currency): self
-        {
-            return $this;
-        }
 
-        static public function to(string $currency): self
-        {
-            return $this;
-        }
-
-        static public function convert(float $amount): float
-        {
-            return 0;
-        }
     }
 }
