@@ -58,7 +58,9 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
-        $this->app->singleton(MarketplaceManager::class);
+        $this->app->singleton(MarketplaceManager::class, function () {
+            return new MarketplaceManager($this->app);
+        });
 
         $this->registerRepositories();
     }
