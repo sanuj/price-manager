@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Contracts\Repositories\CompanyProductRepositoryContract;
+use App\Contracts\Repositories\MarketplaceListingRepositoryContract;
 use App\Contracts\Repositories\MarketplaceRepositoryContract;
 use App\Managers\MarketplaceManager;
 use App\Repositories\CompanyProductRepository;
+use App\Repositories\MarketplaceListingRepository;
 use App\Repositories\MarketplaceRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
@@ -66,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
         $repositories = [
             CompanyProductRepositoryContract::class => CompanyProductRepository::class,
             MarketplaceRepositoryContract::class => MarketplaceRepository::class,
+            MarketplaceListingRepositoryContract::class => MarketplaceListingRepository::class,
         ];
 
         foreach ($repositories as $abstract => $concrete) {

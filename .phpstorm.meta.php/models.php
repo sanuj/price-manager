@@ -118,7 +118,7 @@ namespace App{
  * @property float $marketplace_max_price
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * @property-read \App\CompanyProduct $listing
+ * @property-read \App\CompanyProduct $companyProduct
  * @property-read \App\Marketplace $marketplace
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\PriceSnapshot[] $priceSnapshots
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Revision[] $revisions
