@@ -23,11 +23,6 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     protected $credentials;
 
     /**
-     * @var \Illuminate\Contracts\Cache\Repository
-     */
-    protected $cache;
-
-    /**
      * @var ThrottleService
      */
     protected $pricedOfferThrottle;
@@ -40,7 +35,6 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     public function __construct(array $credentials = ['ItemCondition' => 'New'])
     {
         $this->credentials = $credentials;
-        $this->cache = resolve(CacheManager::class)->store();
     }
 
     public function setPrice(string $asin, float $price, array $options = [])
