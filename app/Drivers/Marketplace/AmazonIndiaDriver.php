@@ -6,9 +6,9 @@ use App\CompanyMarketplace;
 use App\Contracts\MarketplaceDriverContract;
 use App\Marketplace\ProductOffer;
 use App\Services\ThrottleService;
-use CaponicaAmazonMwsComplete\MwsProductClient;
+use CaponicaAmazonMwsComplete\AmazonClient\MwsProductClient;
 use DOMDocument;
-use Illuminate\Cache\CacheManager;
+use SimpleXMLElement;
 
 class AmazonIndiaDriver implements MarketplaceDriverContract
 {
@@ -50,7 +50,7 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
      * @return \App\Marketplace\ProductOffer[][]
      * @throws \Exception
      */
-    public function getPrice($asin)
+    public function getOffers($asin)
     {
         if ($this->canUsePricedOffersAPI()) {
             return $this->getPriceWithPricedOffersAPI((array)$asin);
@@ -180,9 +180,9 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
                     'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.Price.ListingPrice.Amount'))
                      + floatval(data_get($listing,
                     'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.Price.Shipping.Amount'));
-            $is_me = filter_var(data_get($listing,
-                'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.@attributes.belongsToRequester'),
-                FILTER_VALIDATE_BOOLEAN);
+//            $is_me = filter_var(data_get($listing,
+//                'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.@attributes.belongsToRequester'),
+//                FILTER_VALIDATE_BOOLEAN);
 
             foreach ($result[$asin] as $offer) {
                 if ($offer['price'] <= $price) {
@@ -228,10 +228,8 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         return $this->pricedOfferThrottle->attempt();
     }
 
-    /**
-     * @return \CaponicaAmazonMwsComplete\MwsProductClient
-     */
-    protected function getProductClient(): \CaponicaAmazonMwsComplete\MwsProductClient
+
+    protected function getProductClient(): MwsProductClient
     {
         return new MwsProductClient(
             $this->credentials['AWSAccessKeyId'],

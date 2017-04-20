@@ -11,7 +11,7 @@ interface MarketplaceDriverContract
      *
      * @return \App\Marketplace\ProductOffer[][]
      */
-    public function getPrice($asin);
+    public function getOffers($asin);
 
     public function use (CompanyMarketplace $marketplace, array $credentials = []): self;
 }
