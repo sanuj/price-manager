@@ -1,12 +1,17 @@
 <?php namespace App\Contracts;
 
-use App\Marketplace;
+use App\CompanyMarketplace;
 
 interface MarketplaceDriverContract
 {
-    public function setPrice(string $id, float $price, array $options = []);
+    /**
+     * Get price & meta from marketplace API.
+     *
+     * @param string|array $asin
+     *
+     * @return \App\Marketplace\ProductOffer[][]
+     */
+    public function getPrice($asin);
 
-    public function setPriceMultiple(array $payload);
-
-    public function use (Marketplace $marketplace, array $credentials = []): self;
+    public function use (CompanyMarketplace $marketplace, array $credentials = []): self;
 }
