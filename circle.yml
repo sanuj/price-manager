@@ -14,7 +14,7 @@ dependencies:
     - echo "memory_limit = 2048M" > /opt/circleci/php/$(phpenv global)/etc/conf.d/memory.ini
     - type -P yarn &> /dev/null || curl -o- -s -L https://yarnpkg.com/install.sh | bash
   override:
-    - composer install --dev --no-interaction --no-progress
+    - composer install --dev --no-interaction --no-progress --ignore-platform-reqs
     - yarn --no-progress
     - npm rebuild node-sass # binary missing issue.
   cache_directories:
