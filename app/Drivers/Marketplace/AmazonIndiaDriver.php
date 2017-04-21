@@ -12,6 +12,7 @@ use SimpleXMLElement;
 
 class AmazonIndiaDriver implements MarketplaceDriverContract
 {
+    protected $error_reporting;
     /**
      * @var \App\CompanyMarketplace
      */
@@ -39,7 +40,92 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
 
     public function setPrice(string $asin, float $price, array $options = [])
     {
-        // TODO: Implement setPrice() method.
+
+    }
+
+    /**
+     * @param string|array $ASINs
+     *
+     * @return ProductOffer[][]
+     */
+    public function getPrice($ASINs)
+    {
+        $client = $this->getProductClient();
+        $request = [
+            'SellerId' => $this->credentials['SellerId'],
+            'MarketplaceId' => $this->credentials['MarketplaceId'],
+            'ItemCondition' => $this->credentials['ItemCondition'],
+            'ASINList' => ['ASIN' => $ASINs],
+        ];
+
+        $response = $this->toArray($client->getMyPriceForASIN($request)->toXML());
+
+        $result = [];
+
+        foreach ($this->getItemsFrom($response, 'GetMyPriceForASINResult') as $listing) {
+            if (!hash_equals('Success', data_get($listing, '@attributes.status'))) {
+                continue;
+            }
+
+            $asin = data_get($listing, '@attributes.ASIN');
+            $result[$asin] = [];
+
+            foreach ($this->getItemsFrom($listing, 'Product.Offers.Offer') as $offer) {
+                $is_fulfilled = data_get($offer, 'FulfillmentChannel') === 'AMAZON';
+                $rating = -1;
+                $reviews = -1;
+                $price = floatval(data_get($offer, 'BuyingPrice.ListingPrice.Amount')) + floatval(data_get($offer,
+                        'BuyingPrice.Shipping.Amount'));
+                $currency = data_get($offer, 'BuyingPrice.ListingPrice.CurrencyCode');
+                $has_buy_box = null;
+
+                $result[$asin][] = compact('is_fulfilled', 'reviews', 'rating', 'price', 'currency', 'has_buy_box');
+            }
+        }
+
+        if (count($request) === 0) {
+            return $result;
+        }
+
+        $ASINs = array_keys($result);
+
+        $request = [
+            'SellerId' => $this->credentials['SellerId'],
+            'MarketplaceId' => $this->credentials['MarketplaceId'],
+            'ItemCondition' => $this->credentials['ItemCondition'],
+            'ASINList' => ['ASIN' => $ASINs],
+        ];
+
+        $response = $this->toArray($client->getCompetitivePricingForASIN($request)->toXML());
+
+        foreach ($this->getItemsFrom($response, 'GetCompetitivePricingForASINResult') as $key => $listing) {
+            $status = (string)data_get($listing, '@attributes.status');
+
+            if (!hash_equals('Success', $status)) {
+                continue;
+            }
+
+            $asin = data_get($listing, '@attributes.ASIN');
+            $is_me = filter_var(data_get($listing,
+                'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.@attributes.belongsToRequester'),
+                FILTER_VALIDATE_BOOLEAN);
+
+            $result[$asin][$key]['has_buy_box'] = $is_me;
+        }
+
+        return $result;
+    }
+
+    protected function getItemsFrom($source, $key)
+    {
+        if (data_get($source, $key) === null) {
+            return [];
+        }
+        if (data_get($source, $key.'.0') === null) {
+            return [data_get($source, $key)];
+        }
+
+        return data_get($source, $key);
     }
 
     /**
@@ -135,7 +221,7 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
 
             $result[$asin] = [];
 
-            $offers = (array)data_get($listing, 'Product.LowestOfferListings.LowestOfferListing', []);
+            $offers = $this->getItemsFrom($listing, 'Product.LowestOfferListings.LowestOfferListing');
 
             foreach ($offers as $offer) {
                 $is_fulfilled = data_get($offer, 'Qualifiers.FulfillmentChannel') === 'Amazon';
@@ -163,11 +249,7 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
 
         $response = $this->toArray($client->getLowestOfferListingsForASIN($request)->toXML());
 
-        $listings = data_get($response, 'GetCompetitivePricingForASINResult.@attributes') === null
-            ? $response->get('GetCompetitivePricingForASINResult')
-            : [$response->get('GetCompetitivePricingForASINResult')];
-
-        foreach ($listings as $listing) {
+        foreach ($this->getItemsFrom($response, 'GetCompetitivePricingForASINResult') as $listing) {
             $status = data_get($listing, '@attribute.status');
 
             if (!hash_equals('Success', $status)) {
@@ -175,14 +257,10 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
             }
 
             $asin = data_get($listing, '@attribute.ASIN');
-
             $price = floatval(data_get($listing,
                     'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.Price.ListingPrice.Amount'))
                      + floatval(data_get($listing,
                     'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.Price.Shipping.Amount'));
-//            $is_me = filter_var(data_get($listing,
-//                'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.@attributes.belongsToRequester'),
-//                FILTER_VALIDATE_BOOLEAN);
 
             foreach ($result[$asin] as $offer) {
                 if ($offer['price'] <= $price) {

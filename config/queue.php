@@ -17,7 +17,7 @@ return [
 
     'default' => env('QUEUE_DRIVER', 'sync'),
 
-    'repricer' => env('REPRICER_QUEUE_DRIVER', 'repricing'),
+    'repricer' => env('REPRICER_QUEUE_DRIVER', 'repricer'),
 
     /*
     |--------------------------------------------------------------------------
@@ -66,13 +66,12 @@ return [
             'retry_after' => 90,
         ],
 
-        'repricing' => [
-            'driver' => 'beanstalkd',
-            'host' => 'localhost',
-            'queue' => 'default',
+        'repricer' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+            'queue' => 'repricer',
             'retry_after' => 90,
-        ],
-
+        ]
     ],
 
     /*

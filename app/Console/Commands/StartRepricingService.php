@@ -38,13 +38,10 @@ class StartRepricingService extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @param \App\Managers\MarketplaceManager $manager
      */
-    public function __construct(MarketplaceManager $manager)
+    public function __construct()
     {
         parent::__construct();
-        $this->manager = $manager;
         $this->queue = config('queue.repricer');
     }
 
@@ -53,14 +50,15 @@ class StartRepricingService extends Command
         $this->call('repricer:stop');
 
         Company::chunk(50, function (Collection $companies) {
-            $jobs = $companies->reduce(function (Company $company) {
-                return $company->marketplaces->map(function (Marketplace $marketplace) use ($company) {
-                    $job = new RepricingJob($company, $marketplace, $this->manager);
+            $jobs = $companies->reduce(function ($jobs, Company $company) {
+                return array_merge($jobs,
+                    $company->marketplaces->map(function (Marketplace $marketplace) use ($company) {
+                        $job = new RepricingJob($company, $marketplace);
 
-                    // TODO: Configure frequency & rate for the marketplace/company.
+                        // TODO: Configure frequency & rate for the marketplace/company.
 
-                    return $job;
-                });
+                        return $job;
+                    })->toArray());
             }, []);
 
             Queue::connection($this->queue)->bulk($jobs);

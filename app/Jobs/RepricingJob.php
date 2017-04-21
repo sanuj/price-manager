@@ -6,12 +6,14 @@ use App\Company;
 use App\Managers\MarketplaceManager;
 use App\Marketplace;
 use App\MarketplaceListing;
+use App\Mongo\Snapshot;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Log;
 use Reprice;
 
 class RepricingJob implements ShouldQueue
@@ -34,12 +36,12 @@ class RepricingJob implements ShouldQueue
     /**
      * @var \App\Company
      */
-    protected $company;
+    public $company;
 
     /**
      * @var \App\Marketplace
      */
-    protected $marketplace;
+    public $marketplace;
     /**
      * @var \App\Managers\MarketplaceManager
      */
@@ -50,22 +52,25 @@ class RepricingJob implements ShouldQueue
      *
      * @param \App\Company $company
      * @param \App\Marketplace $marketplace
-     * @param \App\Managers\MarketplaceManager $manager
      */
-    public function __construct(Company $company, Marketplace $marketplace, MarketplaceManager $manager)
+    public function __construct(Company $company, Marketplace $marketplace)
     {
         $this->company = $company;
         $this->marketplace = $marketplace;
-        $this->manager = $manager;
     }
 
     /**
      * Execute the job.
      *
      * @return void
+     * @throws \Exception
      */
     public function handle()
     {
+        $this->manager = resolve(MarketplaceManager::class);
+
+        $this->debug('Starting repricer for '.$this->company->name);
+
         $listings = MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
                                       ->whereCompanyId($this->company->getKey())
                                       ->where('updated_at', '<', Carbon::now()->addMinutes(-$this->frequency))
@@ -74,27 +79,56 @@ class RepricingJob implements ShouldQueue
                                       ->get();
 
         if ($listings->count() === 0) {
-            $this->release($this->frequency * 60);  // TODO: It should be in minutes. Confirm this!
+            $this->debug('No tasks left. Rescheduling after '.$this->getFrequency().' minutes.');
+            $this->release(Carbon::now()->addMinutes($this->getFrequency()));
 
             return;
         }
 
-        $credentials = $this->company->credentialsFor($this->marketplace)->credentials;
+        $this->debug($listings->count().' product listings');
 
-        $payload = $listings->map(function (MarketplaceListing $listing) {
-            $listing = Reprice::reprice($listing);
+        try {
+            $api = $this->manager->driver($this->marketplace->name);
+            $api->use($this->company->credentialsFor($this->marketplace));
 
-            return [
-                'uid' => $listing->uid,
-                'price' => $listing->selling_price,
-            ];
-        })->toArray();
+            // <--- NOTICE: Watching price changes.
+            $payload = $listings->pluck('uid')->toArray();
 
-        $this->manager->driver($this->marketplace->name)
-                      ->use($this->marketplace, $credentials)
-                      ->setPriceMultiple($payload);
+            $offers = $api->getPrice($payload);
+            $competitors = $api->getOffers($payload);
 
-        $this->release(120); // TODO: It should be in minutes. Confirm this!
+            foreach ($listings as $listing) {
+                /** @var MarketplaceListing $listing */
+
+                $snapshot = new Snapshot([
+                    'repricer_listing_id' => $listing->getKey(),
+                    'uid' => $listing->uid,
+                    'marketplace' => $this->marketplace->name,
+                    'offers' => $offers[$listing->uid] ?? [],
+                    'competitors' => array_map(function (Marketplace\ProductOffer $offer) {
+                        return $offer->toArray();
+                    }, $competitors[$listing->uid] ?? []),
+                    'timestamp' => Carbon::now(),
+                ]);
+
+                if (!$snapshot->save()) {
+                    Log::error('Failed to store listing in mongodb.', $snapshot->toArray());
+                    $this->debug('Failed to store listing in mongodb.');
+                } else {
+                    $this->debug('Price Snapshot', $snapshot->toArray());
+                    $listing->touch();
+                }
+            }
+        } catch (\Exception $e) {
+            $this->debug('There is an error. '.$e->getMessage());
+
+            throw $e;
+        }
+
+        // Watching Price Changes --->
+
+        $this->debug('Rescheduling after '.$this->getFrequency().' minutes');
+        $this->release(Carbon::now()->addMinutes($this->getFrequency()));
     }
 
     /**
@@ -127,5 +161,14 @@ class RepricingJob implements ShouldQueue
     public function setFrequency(int $frequency)
     {
         $this->frequency = $frequency;
+    }
+
+    protected function debug(string $message, array $payload = [])
+    {
+        Log::debug('RepricerService::Company('.$this->company->getKey().') - '.$message, $payload);
+        echo('RepricerService::Company('.$this->company->getKey().') - '.$message.PHP_EOL);
+        if (count($payload)) {
+            dump($payload);
+        }
     }
 }
