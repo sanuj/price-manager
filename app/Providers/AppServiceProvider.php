@@ -11,7 +11,7 @@ use App\Repositories\MarketplaceListingRepository;
 use App\Repositories\MarketplaceRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
-use Transformer;
+use Znck\Transform\Facades\Transform;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        \Znck\Transform\Facades\Transform::register(function (Model $model) {
+        Transform::register(function (Model $model) {
             return [
                 'id' => $model->getKey(),
                 '_type' => $model->getMorphClass(),
