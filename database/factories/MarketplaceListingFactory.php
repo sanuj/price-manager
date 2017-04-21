@@ -21,6 +21,9 @@ $factory->define(App\MarketplaceListing::class, function (Faker\Generator $faker
         'marketplace_id' => function () {
             return factory(App\Marketplace::class)->create()->getKey();
         },
+        'company_id' => function () {
+            return factory(App\Company::class)->create()->getKey();
+        },
         'company_product_id' => function () {
             return factory(App\CompanyProduct::class)->create()->getKey();
         },

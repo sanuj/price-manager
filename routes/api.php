@@ -1,18 +1,9 @@
 <?php
 
-use Illuminate\Http\Request;
+$restful = ['only' => ['index', 'store', 'update', 'destroy']];
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['middleware' => 'auth:api,web', 'prefix' => '/company'], function () use ($restful) {
+    Route::resource('products', 'API\CompanyProductController', $restful);
+    Route::resource('products.listings', 'API\MarketplaceListingController', $restful);
+    Route::resource('marketplaces', 'API\MarketplaceController', $restful);
 });

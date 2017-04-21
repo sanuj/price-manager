@@ -8,6 +8,17 @@ class MarketplaceListing extends Model
 {
     use Concerns\Revisionable;
 
+    protected $fillable = [
+        'selling_price',
+        'cost_price',
+        'min_price',
+        'max_price',
+        'uid',
+        'sku',
+        'url',
+        'ref_num',
+    ];
+
     protected $casts = [
         'selling_price' => 'int',
         'cost_price' => 'int',
@@ -18,6 +29,8 @@ class MarketplaceListing extends Model
         'marketplace_cost_price' => 'float',
         'marketplace_min_price' => 'float',
         'marketplace_max_price' => 'float',
+
+        'company_product_id' => 'int',
     ];
 
     public function marketplace()
@@ -25,9 +38,14 @@ class MarketplaceListing extends Model
         return $this->belongsTo(Marketplace::class);
     }
 
-    public function listing()
+    public function companyProduct()
     {
         return $this->belongsTo(CompanyProduct::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 
     public function priceSnapshots()

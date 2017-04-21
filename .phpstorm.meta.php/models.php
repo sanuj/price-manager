@@ -31,6 +31,28 @@ namespace App{
 
 namespace App{
 /**
+ * App\CompanyMarketplace
+ *
+ * @property int $id
+ * @property int $company_id
+ * @property int $marketplace_id
+ * @property string $credentials
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property-read \App\Company $company
+ * @property-read \App\Marketplace $marketplace
+ * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereCompanyId($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereCreatedAt($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereCredentials($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereId($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereMarketplaceId($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereUpdatedAt($value)
+ */
+	class CompanyMarketplace extends \Eloquent {}
+}
+
+namespace App{
+/**
  * App\CompanyProduct
  *
  * @property int $id
@@ -81,6 +103,7 @@ namespace App{
  *
  * @property int $id
  * @property int $marketplace_id
+ * @property int $company_id
  * @property int $company_product_id
  * @property string $uid
  * @property string $sku
@@ -96,10 +119,12 @@ namespace App{
  * @property float $marketplace_max_price
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * @property-read \App\CompanyProduct $listing
+ * @property-read \App\Company $company
+ * @property-read \App\CompanyProduct $companyProduct
  * @property-read \App\Marketplace $marketplace
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\PriceSnapshot[] $priceSnapshots
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Revision[] $revisions
+ * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereCompanyId($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereCompanyProductId($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereCostPrice($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereCreatedAt($value)
@@ -187,11 +212,16 @@ namespace App{
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property int $company_id
  * @property string $password
  * @property string $remember_token
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
+ * @property-read \App\Company $company
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection|\Illuminate\Notifications\DatabaseNotification[] $notifications
+ * @property-read \Illuminate\Database\Eloquent\Collection|\Znck\Trust\Models\Permission[] $permissions
+ * @property-read \Illuminate\Database\Eloquent\Collection|\Znck\Trust\Models\Role[] $roles
+ * @method static \Illuminate\Database\Query\Builder|\App\User whereCompanyId($value)
  * @method static \Illuminate\Database\Query\Builder|\App\User whereCreatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|\App\User whereEmail($value)
  * @method static \Illuminate\Database\Query\Builder|\App\User whereId($value)

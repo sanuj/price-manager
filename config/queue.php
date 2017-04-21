@@ -17,6 +17,8 @@ return [
 
     'default' => env('QUEUE_DRIVER', 'sync'),
 
+    'repricer' => env('REPRICER_QUEUE_DRIVER', 'repricer'),
+
     /*
     |--------------------------------------------------------------------------
     | Queue Connections
@@ -64,6 +66,14 @@ return [
             'retry_after' => 90,
         ],
 
+        'repricer' => [
+            'driver' => 'sqs',
+            'key' => env('SQS_PUBLIC_KEY'),
+            'secret' => env('SQL_SECRET_KEY'),
+            'prefix' => env('SQS_PREFIX_URL'),
+            'queue' => 'repricer',
+            'region' => env('SQS_REGION', 'us-east-1'),
+        ],
     ],
 
     /*

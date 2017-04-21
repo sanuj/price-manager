@@ -21,6 +21,22 @@ class Company extends Model
     public function marketplaces()
     {
         return $this->belongsToMany(Marketplace::class)
+                    ->withPivot('id', 'credentials')
+                    ->withTimestamps()
                     ->using(CompanyMarketplace::class);
+    }
+
+    /**
+     * Get pivot entry for a marketplace.
+     *
+     * @param \App\Marketplace $marketplace
+     *
+     * @return \App\CompanyMarketplace
+     */
+    public function credentialsFor(Marketplace $marketplace)
+    {
+        return $this->marketplaces()
+                    ->wherePivot('marketplace_id', $marketplace->getKey())
+                    ->first()->pivot;
     }
 }
