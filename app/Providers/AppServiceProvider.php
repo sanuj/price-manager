@@ -11,6 +11,7 @@ use App\Repositories\MarketplaceListingRepository;
 use App\Repositories\MarketplaceRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
+use Transformer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,7 +31,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-
+        \Znck\Transform\Facades\Transform::register(function (Model $model) {
+            return [
+                'id' => $model->getKey(),
+                '_type' => $model->getMorphClass(),
+            ];
+        });
     }
 
     /**
@@ -40,27 +46,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        if ($this->app->environment('testing')) {
-            foreach ($this->testing as $provider) {
-                $this->app->register($provider);
-            }
-        }
-
-        if ($this->app->environment('local')) {
-            foreach ($this->local as $provider) {
-                $this->app->register($provider);
-            }
-        }
+        $this->configureTestingEnv();
+        $this->configureDevEnv();
 
         $this->app->singleton(MarketplaceManager::class, function () {
             return new MarketplaceManager($this->app);
-        });
-
-        \Transformer::register(function (Model $model) {
-            return [
-                'id' => $model->getKey(),
-                '_type' => $model->getMorphClass(),
-            ];
         });
 
         $this->registerRepositories();
@@ -76,6 +66,24 @@ class AppServiceProvider extends ServiceProvider
 
         foreach ($repositories as $abstract => $concrete) {
             $this->app->singleton($abstract, $concrete);
+        }
+    }
+
+    protected function configureTestingEnv()
+    {
+        if ($this->app->environment('testing')) {
+            foreach ($this->testing as $provider) {
+                $this->app->register($provider);
+            }
+        }
+    }
+
+    protected function configureDevEnv()
+    {
+        if ($this->app->environment('local')) {
+            foreach ($this->local as $provider) {
+                $this->app->register($provider);
+            }
         }
     }
 }
