@@ -26,5 +26,6 @@ test:
     - cp .env.example .env
     - php artisan key:generate
     - yarn run dev
+    - yarn run test:unit
+    - yarn run test:feature
     - yarn run test:dusk
-    - yarn run test:phpunit
