@@ -39,9 +39,8 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         $this->credentials = $credentials;
     }
 
-    public function setPrice(string $asin, float $price, array $options = [])
+    public function setPrice($asin)
     {
-
     }
 
     /**
