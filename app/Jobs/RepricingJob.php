@@ -15,6 +15,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Log;
+use Queue;
 
 class RepricingJob implements ShouldQueue
 {
@@ -81,7 +82,7 @@ class RepricingJob implements ShouldQueue
 
         if ($listings->count() === 0) {
             $this->debug('No tasks left. Rescheduling after '.$this->getFrequency().' minutes.');
-            $this->release(60 * $this->getFrequency());
+            $this->reschedule(60 * $this->getFrequency());
 
             return;
         }
@@ -120,7 +121,7 @@ class RepricingJob implements ShouldQueue
                 }
             }
         } catch (ThrottleLimitReachedException $e) {
-            $this->release(60 * $this->getFrequency());
+            $this->reschedule(60 * $this->getFrequency());
 
             // TODO: Get API cool down time from driver.
             return;
@@ -131,7 +132,7 @@ class RepricingJob implements ShouldQueue
         }
 
         // Watching Price Changes --->
-        $this->release();
+        $this->reschedule();
     }
 
     /**
@@ -164,6 +165,17 @@ class RepricingJob implements ShouldQueue
     public function setFrequency(int $frequency)
     {
         $this->frequency = $frequency;
+    }
+
+    public function reschedule(int $seconds = 0)
+    {
+        $job = new RepricingJob($this->company, $this->marketplace);
+
+        if ($seconds) {
+            Queue::connection($this->connection)->later($seconds, $job);
+        } else {
+            Queue::connection($this->connection)->push($job);
+        }
     }
 
     protected function debug(string $message, array $payload = [])
