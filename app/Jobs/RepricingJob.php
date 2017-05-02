@@ -82,7 +82,15 @@ class RepricingJob implements ShouldQueue
 
         if ($listings->count() === 0) {
             $this->debug('No tasks left. Rescheduling after '.$this->getFrequency().' minutes.');
-            $this->reschedule(60 * $this->getFrequency());
+            $listing = MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
+                                         ->whereCompanyId($this->company->getKey())
+                                         ->orderBy('updated_at', 'asc')->first();
+
+            if ($listing) {
+                $this->reschedule(60 * min(15, abs(Carbon::now()->diffInMinutes($listing->updated_at))));
+            } else {
+                $this->reschedule(60 * $this->getFrequency());
+            }
 
             return;
         }
@@ -121,9 +129,8 @@ class RepricingJob implements ShouldQueue
                 }
             }
         } catch (ThrottleLimitReachedException $e) {
-            $this->reschedule(60 * $this->getFrequency());
-
-            // TODO: Get API cool down time from driver.
+            $this->debug('Rescheduling, throttle limit reached.');
+            $this->reschedule(60);
             return;
         } catch (\Throwable $e) {
             $this->debug('There is an error. '.$e->getMessage());
@@ -182,9 +189,5 @@ class RepricingJob implements ShouldQueue
     protected function debug(string $message, array $payload = [])
     {
         Log::debug('RepricerService::Company('.$this->company->getKey().') - '.$message, $payload);
-        echo('RepricerService::Company('.$this->company->getKey().') - '.$message.PHP_EOL);
-        if (count($payload)) {
-            dump($payload);
-        }
     }
 }
