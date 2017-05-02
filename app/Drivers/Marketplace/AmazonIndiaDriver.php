@@ -46,76 +46,82 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     /**
      * @param string|array $ASINs
      *
-     * @return ProductOffer[][]
+     * @return \App\Marketplace\ProductOffer[][]
+     * @throws \App\Exceptions\ThrottleLimitReachedException
      */
     public function getPrice($ASINs)
     {
-        $client = $this->getProductClient();
-        $request = [
-            'SellerId' => $this->credentials['SellerId'],
-            'MarketplaceId' => $this->credentials['MarketplaceId'],
-            'ItemCondition' => $this->credentials['ItemCondition'],
-            'ASINList' => ['ASIN' => $ASINs],
-        ];
+        try {
+            $client = $this->getProductClient();
+            $request = [
+                'SellerId' => $this->credentials['SellerId'],
+                'MarketplaceId' => $this->credentials['MarketplaceId'],
+                'ItemCondition' => $this->credentials['ItemCondition'],
+                'ASINList' => ['ASIN' => $ASINs],
+            ];
 
-        $response = $this->toArray($client->getMyPriceForASIN($request)->toXML());
+            $response = $this->toArray($client->getMyPriceForASIN($request)->toXML());
 
-        $result = [];
+            $result = [];
 
-        foreach ($this->getItemsFrom($response, 'GetMyPriceForASINResult') as $listing) {
-            if (!hash_equals('Success', data_get($listing, '@attributes.status'))) {
-                continue;
+            foreach ($this->getItemsFrom($response, 'GetMyPriceForASINResult') as $listing) {
+                if (!hash_equals('Success', data_get($listing, '@attributes.status'))) {
+                    continue;
+                }
+
+                $asin = data_get($listing, '@attributes.ASIN');
+                $result[$asin] = [];
+
+                foreach ($this->getItemsFrom($listing, 'Product.Offers.Offer') as $offer) {
+                    $is_fulfilled = data_get($offer, 'FulfillmentChannel') === 'AMAZON';
+                    $rating = -1;
+                    $reviews = -1;
+                    $price = floatval(data_get($offer, 'BuyingPrice.ListingPrice.Amount')) + floatval(data_get($offer,
+                            'BuyingPrice.Shipping.Amount'));
+                    $currency = data_get($offer, 'BuyingPrice.ListingPrice.CurrencyCode');
+                    $has_buy_box = null;
+
+                    $result[$asin][] = compact('is_fulfilled', 'reviews', 'rating', 'price', 'currency', 'has_buy_box');
+                }
             }
 
-            $asin = data_get($listing, '@attributes.ASIN');
-            $result[$asin] = [];
-
-            foreach ($this->getItemsFrom($listing, 'Product.Offers.Offer') as $offer) {
-                $is_fulfilled = data_get($offer, 'FulfillmentChannel') === 'AMAZON';
-                $rating = -1;
-                $reviews = -1;
-                $price = floatval(data_get($offer, 'BuyingPrice.ListingPrice.Amount')) + floatval(data_get($offer,
-                        'BuyingPrice.Shipping.Amount'));
-                $currency = data_get($offer, 'BuyingPrice.ListingPrice.CurrencyCode');
-                $has_buy_box = null;
-
-                $result[$asin][] = compact('is_fulfilled', 'reviews', 'rating', 'price', 'currency', 'has_buy_box');
+            if (count($request) === 0) {
+                return $result;
             }
-        }
 
-        if (count($request) === 0) {
+            $ASINs = array_keys($result);
+
+            $request = [
+                'SellerId' => $this->credentials['SellerId'],
+                'MarketplaceId' => $this->credentials['MarketplaceId'],
+                'ItemCondition' => $this->credentials['ItemCondition'],
+                'ASINList' => ['ASIN' => $ASINs],
+            ];
+
+            $response = $this->toArray($client->getCompetitivePricingForASIN($request)->toXML());
+
+            foreach ($this->getItemsFrom($response, 'GetCompetitivePricingForASINResult') as $key => $listing) {
+                $status = (string)data_get($listing, '@attributes.status');
+
+                if (!hash_equals('Success', $status)) {
+                    continue;
+                }
+
+                $asin = data_get($listing, '@attributes.ASIN');
+                $is_me = filter_var(data_get($listing,
+                    'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.@attributes.belongsToRequester'),
+                    FILTER_VALIDATE_BOOLEAN);
+
+                // Can't figure out which offer has buy-box, so updating all offers.
+                foreach ($result[$asin] as $k => $temp) {
+                    $result[$asin][$k]['has_buy_box'] = $is_me;
+                }
+            }
+
             return $result;
+        } catch (\MarketplaceWebServiceProducts_Exception $e) {
+            throw new ThrottleLimitReachedException('Amazon MWS API limit reached.', 0, $e);
         }
-
-        $ASINs = array_keys($result);
-
-        $request = [
-            'SellerId' => $this->credentials['SellerId'],
-            'MarketplaceId' => $this->credentials['MarketplaceId'],
-            'ItemCondition' => $this->credentials['ItemCondition'],
-            'ASINList' => ['ASIN' => $ASINs],
-        ];
-
-        $response = $this->toArray($client->getCompetitivePricingForASIN($request)->toXML());
-
-        foreach ($this->getItemsFrom($response, 'GetCompetitivePricingForASINResult') as $key => $listing) {
-            $status = (string)data_get($listing, '@attributes.status');
-
-            if (!hash_equals('Success', $status)) {
-                continue;
-            }
-
-            $asin = data_get($listing, '@attributes.ASIN');
-            $is_me = filter_var(data_get($listing,
-                'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.@attributes.belongsToRequester'),
-                FILTER_VALIDATE_BOOLEAN);
-
-            // Can't figure out which offer has buy-box, so updating all offers.
-            foreach($result[$asin] as $k => $temp)
-                $result[$asin][$k]['has_buy_box'] = $is_me;
-        }
-
-        return $result;
     }
 
     protected function getItemsFrom($source, $key)
@@ -140,13 +146,24 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
      */
     public function getOffers($asin)
     {
-        if ($this->canUsePricedOffersAPI()) {
-            return $this->getPriceWithPricedOffersAPI((array)$asin);
-        } elseif ($this->canUseOfferListingAPI()) {
-            return $this->getPriceWithOfferListingAPI((array)$asin);
-        } else {
-            throw new ThrottleLimitReachedException('Amazon MWS API limit reached.');
+        $error = null;
+        try {
+            if ($this->canUsePricedOffersAPI()) {
+                return $this->getPriceWithPricedOffersAPI((array)$asin);
+            }
+        } catch (\MarketplaceWebServiceProducts_Exception $e) {
+            $error = $e;
         }
+
+        try {
+            if ($this->canUseOfferListingAPI()) {
+                return $this->getPriceWithOfferListingAPI((array)$asin);
+            }
+        } catch (\MarketplaceWebServiceProducts_Exception $e) {
+            $error = $e;
+        }
+
+        throw new ThrottleLimitReachedException('Amazon MWS API limit reached.', 0, $error);
     }
 
     public function getPriceWithPricedOffersAPI(array $ASINs)
@@ -288,7 +305,7 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     protected function canUseOfferListingAPI(): bool
     {
         if ($this->offerListingThrottle === null) {
-            $this->offerListingThrottle = new ThrottleService($this->cacheKey('OfferListing'), 20, 1);
+            $this->offerListingThrottle = new ThrottleService($this->cacheKey('OfferListing'), 3, 1);
         }
 
         return $this->offerListingThrottle->attempt();
@@ -300,7 +317,7 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     protected function canUsePricedOffersAPI(): bool
     {
         if ($this->pricedOfferThrottle === null) {
-            $this->pricedOfferThrottle = new ThrottleService($this->cacheKey('PricedOffer'), 12, 1);
+            $this->pricedOfferThrottle = new ThrottleService($this->cacheKey('PricedOffer'), 10, 60);
         }
 
         return $this->pricedOfferThrottle->attempt();
