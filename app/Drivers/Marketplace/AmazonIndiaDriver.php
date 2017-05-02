@@ -6,9 +6,13 @@ use App\CompanyMarketplace;
 use App\Contracts\MarketplaceDriverContract;
 use App\Exceptions\ThrottleLimitReachedException;
 use App\Marketplace\ProductOffer;
+use App\MarketplaceListing;
 use App\Services\ThrottleService;
+use CaponicaAmazonMwsComplete\AmazonClient\MwsFeedAndReportClient;
 use CaponicaAmazonMwsComplete\AmazonClient\MwsProductClient;
+use CaponicaAmazonMwsComplete\ClientPack\MwsFeedAndReportClientPack;
 use DOMDocument;
+use Illuminate\Support\Collection;
 use SimpleXMLElement;
 
 class AmazonIndiaDriver implements MarketplaceDriverContract
@@ -39,8 +43,45 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         $this->credentials = $credentials;
     }
 
-    public function setPrice($asin)
+    public function setPrice(Collection $listings)
     {
+        $messages = $listings->reduce(function ($messages, MarketplaceListing $listing) {
+            return $messages.PHP_EOL.<<<MESSAGE
+<Message>
+    <MessageID>{$listing->getKey()}</MessageID> 
+    <Price>
+      <SKU>{$listing->companyProduct->sku}</SKU>
+      <StandardPrice currency="{$listing->marketplace->currency}">{$listing->marketplace_selling_price}</StandardPrice>
+    </Price>
+</Message>
+MESSAGE;
+        }, '');
+
+        $body = <<<FEED
+<?xml version="1.0" encoding="utf-8"?>
+  <AmazonEnvelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="amznenvelope.xsd">
+  <Header>
+    <DocumentVersion>1.01</DocumentVersion>
+    <MerchantIdentifier>M_SELLER_354577</MerchantIdentifier>
+  </Header>
+  
+  <MessageType>Price</MessageType> 
+
+  ${messages}
+</AmazonEnvelope>
+FEED;
+
+        // TODO: Throttle it.
+
+        $client = $this->getFeedClient();
+
+        $client->submitFeed([
+            'FeedType' => MwsFeedAndReportClientPack::FEED_TYPE_PAI_PRICING,
+            'FeedContent' => $body,
+            'MarketplaceIdList' => ['Id' => $this->credentials['MarketplaceId']],
+        ]);
+
+        // TODO: Ensure price is updated.
     }
 
     /**
@@ -328,6 +369,16 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     {
         return new MwsProductClient(
             $this->credentials['AWSAccessKeyId'],
+            $this->credentials['SecretKey'],
+            $this->credentials['name'],
+            $this->credentials['version'],
+            ['ServiceURL' => $this->credentials['ServiceURL']]
+        );
+    }
+
+    protected function getFeedClient(): MwsFeedAndReportClient
+    {
+        return new MwsFeedAndReportClient($this->credentials['AWSAccessKeyId'],
             $this->credentials['SecretKey'],
             $this->credentials['name'],
             $this->credentials['version'],

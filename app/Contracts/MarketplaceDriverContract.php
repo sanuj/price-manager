@@ -1,6 +1,7 @@
 <?php namespace App\Contracts;
 
 use App\CompanyMarketplace;
+use Illuminate\Support\Collection;
 
 interface MarketplaceDriverContract
 {
@@ -13,7 +14,14 @@ interface MarketplaceDriverContract
      */
     public function getPrice($asin);
 
-    public function setPrice($asin);
+    /**
+     * @param \App\Contracts\Collection|\App\MarketplaceListing[] $asin
+     *
+     * @return void
+     *
+     * TODO: Figure it out. (Return Value)
+     */
+    public function setPrice(Collection $asin);
 
     /**
      * Get price & meta from marketplace API.
