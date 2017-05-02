@@ -176,7 +176,7 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
             foreach ($offers as $offer) {
                 $is_fulfilled = filter_var(data_get($offer, 'IsFulfilledByAmazon'), FILTER_VALIDATE_BOOLEAN);
                 $rating = intval(data_get($offer, 'SellerFeedbackRating.SellerPositiveFeedbackRating', 0)) / 20.0;
-                $reviews = data_get($offer, 'SellerFeedbackRating.FeedbackCount');
+                $reviews = intval(data_get($offer, 'SellerFeedbackRating.FeedbackCount'));
                 $price = floatval(data_get($offer, 'ListingPrice.Amount')) + floatval(data_get($offer,
                         'Shipping.Amount'));
                 $currency = data_get($offer, 'ListingPrice.CurrencyCode');
@@ -204,20 +204,18 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
 
         $response = $this->toArray($client->getLowestOfferListingsForASIN($request)->toXML());
 
-        $listings = data_get($response, 'GetLowestOfferListingsForASINResult.@attributes') === null
-            ? $response->get('GetLowestOfferListingsForASINResult')
-            : [$response->get('GetLowestOfferListingsForASINResult')];
+        $listings = $this->getItemsFrom($response, 'GetLowestOfferListingsForASINResult');
 
         $result = [];
 
         foreach ($listings as $listing) {
-            $status = data_get($listing, '@attribute.status');
+            $status = data_get($listing, '@attributes.status');
 
             if (!hash_equals('Success', $status)) {
                 continue;
             }
 
-            $asin = data_get($listing, '@attribute.ASIN');
+            $asin = data_get($listing, '@attributes.ASIN');
 
             $result[$asin] = [];
 
@@ -226,7 +224,7 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
             foreach ($offers as $offer) {
                 $is_fulfilled = data_get($offer, 'Qualifiers.FulfillmentChannel') === 'Amazon';
                 $rating = intval(data_get($offer, 'Qualifiers.SellerPositiveFeedbackRating', 0)) / 20.0;
-                $reviews = data_get($offer, 'SellerFeedbackCount');
+                $reviews = intval(data_get($offer, 'SellerFeedbackCount'));
                 $price = floatval(data_get($offer, 'Price.ListingPrice.Amount')) + floatval(data_get($offer,
                         'Price.Shipping.Amount'));
                 $currency = data_get($offer, 'Price.ListingPrice.CurrencyCode');
@@ -247,16 +245,16 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
             'ASINList' => ['ASIN' => $ASINs],
         ];
 
-        $response = $this->toArray($client->getLowestOfferListingsForASIN($request)->toXML());
+        $response = $this->toArray($client->getCompetitivePricingForASIN($request)->toXML());
 
         foreach ($this->getItemsFrom($response, 'GetCompetitivePricingForASINResult') as $listing) {
-            $status = data_get($listing, '@attribute.status');
+            $status = data_get($listing, '@attributes.status');
 
             if (!hash_equals('Success', $status)) {
                 continue;
             }
 
-            $asin = data_get($listing, '@attribute.ASIN');
+            $asin = data_get($listing, '@attributes.ASIN');
             $price = floatval(data_get($listing,
                     'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.Price.ListingPrice.Amount'))
                      + floatval(data_get($listing,

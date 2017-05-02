@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<GetCompetitivePricingForASINResponse xmlns="http://mws.amazonservices.com/schema/Products/2011-10-01">
+  <GetCompetitivePricingForASINResult ASIN="B00S6JCFB4" status="Success">
+    <Product xmlns="http://mws.amazonservices.com/schema/Products/2011-10-01" xmlns:ns2="http://mws.amazonservices.com/schema/Products/2011-10-01/default.xsd">
+      <Identifiers>
+        <MarketplaceASIN>
+          <MarketplaceId>A21TJRUUN4KGV</MarketplaceId>
+          <ASIN>B00S6JCFB4</ASIN>
+        </MarketplaceASIN>
+      </Identifiers>
+      <CompetitivePricing>
+        <CompetitivePrices>
+          <CompetitivePrice belongsToRequester="true" condition="New" subcondition="New">
+            <CompetitivePriceId>1</CompetitivePriceId>
+            <Price>
+              <LandedPrice>
+                <CurrencyCode>INR</CurrencyCode>
+                <Amount>905.00</Amount>
+              </LandedPrice>
+              <ListingPrice>
+                <CurrencyCode>INR</CurrencyCode>
+                <Amount>905.00</Amount>
+              </ListingPrice>
+              <Shipping>
+                <CurrencyCode>INR</CurrencyCode>
+                <Amount>0.00</Amount>
+              </Shipping>
+            </Price>
+          </CompetitivePrice>
+        </CompetitivePrices>
+        <NumberOfOfferListings>
+          <OfferListingCount condition="New">9</OfferListingCount>
+          <OfferListingCount condition="Any">9</OfferListingCount>
+        </NumberOfOfferListings>
+      </CompetitivePricing>
+      <SalesRankings>
+        <SalesRank>
+          <ProductCategoryId>luggage_display_on_website</ProductCategoryId>
+          <Rank>39</Rank>
+        </SalesRank>
+        <SalesRank>
+          <ProductCategoryId>2917434031</ProductCategoryId>
+          <Rank>8</Rank>
+        </SalesRank>
+      </SalesRankings>
+    </Product>
+  </GetCompetitivePricingForASINResult>
+  <ResponseMetadata>
+    <RequestId>f25d47cf-4563-4d8c-8387-f0b403b44ff5</RequestId>
+  </ResponseMetadata>
+</GetCompetitivePricingForASINResponse>

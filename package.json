@@ -8,8 +8,9 @@
     "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
     "pretest:dusk": "[ -f database/testing.sqlite ] && rm database/testing.sqlite; touch database/testing.sqlite",
     "test:dusk": "dusk -s --env testing",
-    "test:phpunit": "vendor/bin/phpunit",
-    "test": "yarn run test:dusk && yarn run test:phpunit"
+    "test:feature": "vendor/bin/phpunit --testsuite 'Feature Tests'",
+    "test:unit": "vendor/bin/phpunit --testsuite 'Unit Tests'",
+    "test": "yarn run test:unit && yarn run test:feature && yarn run test:dusk"
   },
   "devDependencies": {
     "axios": "^0.15.3",
