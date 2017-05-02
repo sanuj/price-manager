@@ -126,9 +126,7 @@ class RepricingJob implements ShouldQueue
         }
 
         // Watching Price Changes --->
-
-        $this->debug('Rescheduling after '.$this->getFrequency().' minutes');
-        $this->release(Carbon::now()->addMinutes($this->getFrequency()));
+        $this->release();
     }
 
     /**
