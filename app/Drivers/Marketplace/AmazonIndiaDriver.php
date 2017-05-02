@@ -4,6 +4,7 @@ namespace App\Drivers\Marketplace;
 
 use App\CompanyMarketplace;
 use App\Contracts\MarketplaceDriverContract;
+use App\Exceptions\ThrottleLimitReachedException;
 use App\Marketplace\ProductOffer;
 use App\Services\ThrottleService;
 use CaponicaAmazonMwsComplete\AmazonClient\MwsProductClient;
@@ -38,9 +39,8 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         $this->credentials = $credentials;
     }
 
-    public function setPrice(string $asin, float $price, array $options = [])
+    public function setPrice($asin)
     {
-
     }
 
     /**
@@ -145,7 +145,7 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         } elseif ($this->canUseOfferListingAPI()) {
             return $this->getPriceWithOfferListingAPI((array)$asin);
         } else {
-            throw new \Exception('Amazon MWS API limit reached.');
+            throw new ThrottleLimitReachedException('Amazon MWS API limit reached.');
         }
     }
 

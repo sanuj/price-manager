@@ -13,6 +13,8 @@ interface MarketplaceDriverContract
      */
     public function getPrice($asin);
 
+    public function setPrice($asin);
+
     /**
      * Get price & meta from marketplace API.
      *
