@@ -17,7 +17,7 @@ return [
 
     'default' => env('QUEUE_DRIVER', 'sync'),
 
-    'repricer' => env('REPRICER_QUEUE_DRIVER', 'repricer'),
+    'repricer' => env('REPRICER_QUEUE_DRIVER', 'watch'),
 
     /*
     |--------------------------------------------------------------------------
@@ -52,11 +52,11 @@ return [
 
         'sqs' => [
             'driver' => 'sqs',
-            'key' => 'your-public-key',
-            'secret' => 'your-secret-key',
-            'prefix' => 'https://sqs.us-east-1.amazonaws.com/your-account-id',
-            'queue' => 'your-queue-name',
-            'region' => 'us-east-1',
+            'key' => env('SQS_PUBLIC_KEY'),
+            'secret' => env('SQL_SECRET_KEY'),
+            'prefix' => env('SQS_PREFIX_URL'),
+            'queue' => 'exponent-default',
+            'region' => env('SQS_REGION', 'us-east-1'),
         ],
 
         'redis' => [
@@ -66,12 +66,12 @@ return [
             'retry_after' => 90,
         ],
 
-        'repricer' => [
+        'watch' => [
             'driver' => 'sqs',
             'key' => env('SQS_PUBLIC_KEY'),
             'secret' => env('SQL_SECRET_KEY'),
             'prefix' => env('SQS_PREFIX_URL'),
-            'queue' => 'repricer-watch',
+            'queue' => 'exponent-watch',
             'region' => env('SQS_REGION', 'us-east-1'),
         ],
     ],
