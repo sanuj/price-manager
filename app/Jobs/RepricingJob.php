@@ -63,7 +63,7 @@ class RepricingJob implements ShouldQueue
      * Execute the job.
      *
      * @return void
-     * @throws \Exception
+     * @throws \Throwable
      */
     public function handle()
     {
@@ -81,7 +81,7 @@ class RepricingJob implements ShouldQueue
 
         if ($listings->count() === 0) {
             $this->debug('No tasks left. Rescheduling after '.$this->getFrequency().' minutes.');
-            $this->release(Carbon::now()->addMinutes($this->getFrequency()));
+            $this->release(60 * $this->getFrequency());
 
             return;
         }
@@ -120,7 +120,8 @@ class RepricingJob implements ShouldQueue
                 }
             }
         } catch (ThrottleLimitReachedException $e) {
-            $this->release(Carbon::now()->addMinutes($this->getFrequency()));
+            $this->release(60 * $this->getFrequency());
+
             // TODO: Get API cool down time from driver.
             return;
         } catch (\Throwable $e) {
