@@ -71,7 +71,7 @@ return [
             'key' => env('SQS_PUBLIC_KEY'),
             'secret' => env('SQL_SECRET_KEY'),
             'prefix' => env('SQS_PREFIX_URL'),
-            'queue' => 'repricer',
+            'queue' => 'repricer-watch',
             'region' => env('SQS_REGION', 'us-east-1'),
         ],
     ],
