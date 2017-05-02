@@ -9,12 +9,11 @@ use App\MarketplaceListing;
 use App\Mongo\Snapshot;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Log;
-use Reprice;
 
 class RepricingJob implements ShouldQueue
 {
@@ -67,6 +66,7 @@ class RepricingJob implements ShouldQueue
      */
     public function handle()
     {
+        error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE); // NOTICE: MWS SDK has deprecated code.
         $this->manager = resolve(MarketplaceManager::class);
 
         $this->debug('Starting repricer for '.$this->company->name);
