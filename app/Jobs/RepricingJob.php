@@ -171,10 +171,11 @@ class RepricingJob implements ShouldQueue
     {
         $job = new RepricingJob($this->company, $this->marketplace);
 
+        // TODO: Push on ~same queue~ again.
         if ($seconds) {
-            Queue::connection($this->connection)->later($seconds, $job);
+            Queue::connection(config('queue.repricer'))->later($seconds, $job);
         } else {
-            Queue::connection($this->connection)->push($job);
+            Queue::connection(config('queue.repricer'))->push($job);
         }
     }
 
