@@ -110,7 +110,9 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
                 'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.@attributes.belongsToRequester'),
                 FILTER_VALIDATE_BOOLEAN);
 
-            $result[$asin][$key]['has_buy_box'] = $is_me;
+            // Can't figure out which offer has buy-box, so updating all offers.
+            foreach($result[$asin] as $k => $temp)
+                $result[$asin][$k]['has_buy_box'] = $is_me;
         }
 
         return $result;
