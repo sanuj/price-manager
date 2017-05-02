@@ -1,4 +1,6 @@
 <?php return [
+    'should_update' => false,
+
     'algorithms' => [
         \App\Pricing\Algorithms\UserDefinedPrice::class,
     ],

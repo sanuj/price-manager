@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Company;
+use App\Exceptions\ThrottleLimitReachedException;
 use App\Managers\MarketplaceManager;
 use App\Marketplace;
 use App\MarketplaceListing;
@@ -115,11 +116,14 @@ class RepricingJob implements ShouldQueue
                     Log::error('Failed to store listing in mongodb.', $snapshot->toArray());
                     $this->debug('Failed to store listing in mongodb.');
                 } else {
-                    $this->debug('Price Snapshot', $snapshot->toArray());
                     $listing->touch();
                 }
             }
-        } catch (\Exception $e) {
+        } catch (ThrottleLimitReachedException $e) {
+            $this->release(Carbon::now()->addMinutes($this->getFrequency()));
+            // TODO: Get API cool down time from driver.
+            return;
+        } catch (\Throwable $e) {
             $this->debug('There is an error. '.$e->getMessage());
 
             throw $e;
