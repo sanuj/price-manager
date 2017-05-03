@@ -108,7 +108,7 @@ class PriceWatcherJob extends SelfSchedulingJob
      * @param $offers
      * @param $competitors
      */
-    protected function recordPriceSnapshot(MarketplaceListing $listing, $offers, $competitors): void
+    protected function recordPriceSnapshot(MarketplaceListing $listing, $offers, $competitors)
     {
         $snapshot = new Snapshot([
             'repricer_listing_id' => $listing->getKey(),
