@@ -32,15 +32,20 @@ class StopRepricingService extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->queue = config('queue.repricer');
     }
 
     public function handle()
     {
-        $count = Queue::connection($this->queue)->size();
+        $this->purge('exponent-watch');
+        $this->purge('exponent-update');
+    }
+
+    protected function purge(string $queue)
+    {
+        $count = Queue::connection()->size($queue);
 
         while ($count--) {
-            Queue::connection($this->queue)->pop();
+            Queue::connection()->pop($queue);
         }
     }
 }

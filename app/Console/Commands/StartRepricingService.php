@@ -49,14 +49,23 @@ class StartRepricingService extends Command
     public function handle()
     {
         $this->call('repricer:stop');
-        $this->line('Starting exponent price watcher & updater.');
-        Company::chunk(50, function (Collection $companies) {
+        $total = Company::count();
+        $count = 0;
+        $this->line('Starting exponent price watcher & updater for '.$total.' companies.');
+        Company::chunk(50, function (Collection $companies) use (&$count, $total) {
+            $count += count($companies);
+
+            $this->output->write($count.' of '.$total.'');
             $companies->each(function (Company $company) {
                 $company->marketplaces->each(function (Marketplace $marketplace) use ($company) {
+                    $this->output->write('.');
                     dispatch(new PriceWatcherJob($company, $marketplace));
+                    $this->output->write('.');
                     dispatch(new PriceUpdaterJob($company, $marketplace));
+                    $this->output->write('.');
                 });
             });
+            $this->line('done.');
         });
     }
 }
