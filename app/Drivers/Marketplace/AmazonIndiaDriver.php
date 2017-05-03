@@ -6,9 +6,15 @@ use App\CompanyMarketplace;
 use App\Contracts\MarketplaceDriverContract;
 use App\Exceptions\ThrottleLimitReachedException;
 use App\Marketplace\ProductOffer;
+use App\MarketplaceListing;
 use App\Services\ThrottleService;
+use CaponicaAmazonMwsComplete\AmazonClient\MwsFeedAndReportClient;
 use CaponicaAmazonMwsComplete\AmazonClient\MwsProductClient;
+use CaponicaAmazonMwsComplete\ClientPack\MwsFeedAndReportClientPack;
 use DOMDocument;
+use Illuminate\Support\Collection;
+use Log;
+use MarketplaceWebServiceProducts_Exception;
 use SimpleXMLElement;
 
 class AmazonIndiaDriver implements MarketplaceDriverContract
@@ -39,8 +45,45 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         $this->credentials = $credentials;
     }
 
-    public function setPrice($asin)
+    public function setPrice(Collection $listings)
     {
+        $messages = $listings->reduce(function ($messages, MarketplaceListing $listing) {
+            return $messages.PHP_EOL.<<<MESSAGE
+<Message>
+    <MessageID>{$listing->getKey()}</MessageID> 
+    <Price>
+      <SKU>{$listing->companyProduct->sku}</SKU>
+      <StandardPrice currency="{$listing->marketplace->currency}">{$listing->marketplace_selling_price}</StandardPrice>
+    </Price>
+</Message>
+MESSAGE;
+        }, '');
+
+        $body = <<<FEED
+<?xml version="1.0" encoding="utf-8"?>
+  <AmazonEnvelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="amznenvelope.xsd">
+  <Header>
+    <DocumentVersion>1.01</DocumentVersion>
+    <MerchantIdentifier>M_SELLER_354577</MerchantIdentifier>
+  </Header>
+  
+  <MessageType>Price</MessageType> 
+
+  ${messages}
+</AmazonEnvelope>
+FEED;
+
+        // TODO: Throttle it.
+
+        $client = $this->getFeedClient();
+
+        $client->submitFeed([
+            'FeedType' => MwsFeedAndReportClientPack::FEED_TYPE_PAI_PRICING,
+            'FeedContent' => $body,
+            'MarketplaceIdList' => ['Id' => $this->credentials['MarketplaceId']],
+        ]);
+
+        // TODO: Ensure price is updated.
     }
 
     /**
@@ -119,7 +162,7 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
             }
 
             return $result;
-        } catch (\MarketplaceWebServiceProducts_Exception $e) {
+        } catch (MarketplaceWebServiceProducts_Exception $e) {
             throw new ThrottleLimitReachedException('Amazon MWS API limit reached.', 0, $e);
         }
     }
@@ -149,17 +192,21 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         $error = null;
         try {
             if ($this->canUsePricedOffersAPI()) {
+                $this->pricedOfferThrottle->hit();
                 return $this->getPriceWithPricedOffersAPI((array)$asin);
             }
-        } catch (\MarketplaceWebServiceProducts_Exception $e) {
+        } catch (MarketplaceWebServiceProducts_Exception $e) {
+            Log::debug('getLowestPricedOffersForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
             $error = $e;
         }
 
         try {
             if ($this->canUseOfferListingAPI()) {
+                $this->offerListingThrottle->hit();
                 return $this->getPriceWithOfferListingAPI((array)$asin);
             }
-        } catch (\MarketplaceWebServiceProducts_Exception $e) {
+        } catch (MarketplaceWebServiceProducts_Exception $e) {
+            Log::debug('getLowestOfferListingsForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
             $error = $e;
         }
 
@@ -305,10 +352,10 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     protected function canUseOfferListingAPI(): bool
     {
         if ($this->offerListingThrottle === null) {
-            $this->offerListingThrottle = new ThrottleService($this->cacheKey('OfferListing'), 3, 1);
+            $this->offerListingThrottle = new ThrottleService($this->cacheKey('getLowestOfferListingsForASIN'), 3, 1);
         }
 
-        return $this->offerListingThrottle->attempt();
+        return $this->offerListingThrottle->check();
     }
 
     /**
@@ -317,10 +364,10 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     protected function canUsePricedOffersAPI(): bool
     {
         if ($this->pricedOfferThrottle === null) {
-            $this->pricedOfferThrottle = new ThrottleService($this->cacheKey('PricedOffer'), 10, 60);
+            $this->pricedOfferThrottle = new ThrottleService($this->cacheKey('getLowestPricedOffersForASIN'), 10, 60);
         }
 
-        return $this->pricedOfferThrottle->attempt();
+        return $this->pricedOfferThrottle->check();
     }
 
 
@@ -328,6 +375,16 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     {
         return new MwsProductClient(
             $this->credentials['AWSAccessKeyId'],
+            $this->credentials['SecretKey'],
+            $this->credentials['name'],
+            $this->credentials['version'],
+            ['ServiceURL' => $this->credentials['ServiceURL']]
+        );
+    }
+
+    protected function getFeedClient(): MwsFeedAndReportClient
+    {
+        return new MwsFeedAndReportClient($this->credentials['AWSAccessKeyId'],
             $this->credentials['SecretKey'],
             $this->credentials['name'],
             $this->credentials['version'],

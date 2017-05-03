@@ -1,7 +1,7 @@
 <?php
 /**
  * A helper file for Laravel 5, to provide autocomplete information to your IDE
- * Generated for Laravel 5.4.16 on 2017-04-07.
+ * Generated for Laravel 5.4.21 on 2017-05-03.
  *
  * @author Barry vd. Heuvel <barryvdh@gmail.com>
  * @see https://github.com/barryvdh/laravel-ide-helper
@@ -101,56 +101,61 @@ namespace Illuminate\Support\Facades {
         /**
          * Get the path to the application "app" directory.
          *
+         * @param string $path Optionally, a path to append to the app path
          * @return string 
          * @static 
          */
-        public static function path()
+        public static function path($path = '')
         {
-            return \Illuminate\Foundation\Application::path();
+            return \Illuminate\Foundation\Application::path($path);
         }
         
         /**
          * Get the base path of the Laravel installation.
          *
+         * @param string $path Optionally, a path to append to the base path
          * @return string 
          * @static 
          */
-        public static function basePath()
+        public static function basePath($path = '')
         {
-            return \Illuminate\Foundation\Application::basePath();
+            return \Illuminate\Foundation\Application::basePath($path);
         }
         
         /**
          * Get the path to the bootstrap directory.
          *
+         * @param string $path Optionally, a path to append to the bootstrap path
          * @return string 
          * @static 
          */
-        public static function bootstrapPath()
+        public static function bootstrapPath($path = '')
         {
-            return \Illuminate\Foundation\Application::bootstrapPath();
+            return \Illuminate\Foundation\Application::bootstrapPath($path);
         }
         
         /**
          * Get the path to the application configuration files.
          *
+         * @param string $path Optionally, a path to append to the config path
          * @return string 
          * @static 
          */
-        public static function configPath()
+        public static function configPath($path = '')
         {
-            return \Illuminate\Foundation\Application::configPath();
+            return \Illuminate\Foundation\Application::configPath($path);
         }
         
         /**
          * Get the path to the database directory.
          *
+         * @param string $path Optionally, a path to append to the database path
          * @return string 
          * @static 
          */
-        public static function databasePath()
+        public static function databasePath($path = '')
         {
-            return \Illuminate\Foundation\Application::databasePath();
+            return \Illuminate\Foundation\Application::databasePath($path);
         }
         
         /**
@@ -213,12 +218,13 @@ namespace Illuminate\Support\Facades {
         /**
          * Get the path to the resources directory.
          *
+         * @param string $path
          * @return string 
          * @static 
          */
-        public static function resourcePath()
+        public static function resourcePath($path = '')
         {
-            return \Illuminate\Foundation\Application::resourcePath();
+            return \Illuminate\Foundation\Application::resourcePath($path);
         }
         
         /**
@@ -1348,13 +1354,13 @@ namespace Illuminate\Support\Facades {
          *
          * @param string $command
          * @param array $parameters
-         * @return void 
+         * @return \Illuminate\Foundation\Bus\PendingDispatch 
          * @static 
          */
         public static function queue($command, $parameters = array())
         {
             //Method inherited from \Illuminate\Foundation\Console\Kernel            
-            \App\Console\Kernel::queue($command, $parameters);
+            return \App\Console\Kernel::queue($command, $parameters);
         }
         
         /**
@@ -1907,6 +1913,31 @@ namespace Illuminate\Support\Facades {
         public static function guest()
         {
             return \Illuminate\Auth\SessionGuard::guest();
+        }
+        
+        /**
+         * Register a custom macro.
+         *
+         * @param string $name
+         * @param callable $macro
+         * @return void 
+         * @static 
+         */
+        public static function macro($name, $macro)
+        {
+            \Illuminate\Auth\SessionGuard::macro($name, $macro);
+        }
+        
+        /**
+         * Checks if macro is registered.
+         *
+         * @param string $name
+         * @return bool 
+         * @static 
+         */
+        public static function hasMacro($name)
+        {
+            return \Illuminate\Auth\SessionGuard::hasMacro($name);
         }
         
     }         
@@ -5570,6 +5601,31 @@ namespace Illuminate\Support\Facades {
             return \Illuminate\Mail\Mailer::setQueue($queue);
         }
         
+        /**
+         * Register a custom macro.
+         *
+         * @param string $name
+         * @param callable $macro
+         * @return void 
+         * @static 
+         */
+        public static function macro($name, $macro)
+        {
+            \Illuminate\Mail\Mailer::macro($name, $macro);
+        }
+        
+        /**
+         * Checks if macro is registered.
+         *
+         * @param string $name
+         * @return bool 
+         * @static 
+         */
+        public static function hasMacro($name)
+        {
+            return \Illuminate\Mail\Mailer::hasMacro($name);
+        }
+        
     }         
 
     class Notification {
@@ -5906,22 +5962,21 @@ namespace Illuminate\Support\Facades {
          */
         public static function size($queue = null)
         {
-            return \Illuminate\Queue\SyncQueue::size($queue);
+            return \Illuminate\Queue\RedisQueue::size($queue);
         }
         
         /**
          * Push a new job onto the queue.
          *
-         * @param string $job
+         * @param object|string $job
          * @param mixed $data
          * @param string $queue
          * @return mixed 
-         * @throws \Exception|\Throwable
          * @static 
          */
         public static function push($job, $data = '', $queue = null)
         {
-            return \Illuminate\Queue\SyncQueue::push($job, $data, $queue);
+            return \Illuminate\Queue\RedisQueue::push($job, $data, $queue);
         }
         
         /**
@@ -5935,14 +5990,14 @@ namespace Illuminate\Support\Facades {
          */
         public static function pushRaw($payload, $queue = null, $options = array())
         {
-            return \Illuminate\Queue\SyncQueue::pushRaw($payload, $queue, $options);
+            return \Illuminate\Queue\RedisQueue::pushRaw($payload, $queue, $options);
         }
         
         /**
          * Push a new job onto the queue after a delay.
          *
          * @param \DateTime|int $delay
-         * @param string $job
+         * @param object|string $job
          * @param mixed $data
          * @param string $queue
          * @return mixed 
@@ -5950,7 +6005,7 @@ namespace Illuminate\Support\Facades {
          */
         public static function later($delay, $job, $data = '', $queue = null)
         {
-            return \Illuminate\Queue\SyncQueue::later($delay, $job, $data, $queue);
+            return \Illuminate\Queue\RedisQueue::later($delay, $job, $data, $queue);
         }
         
         /**
@@ -5962,7 +6017,58 @@ namespace Illuminate\Support\Facades {
          */
         public static function pop($queue = null)
         {
-            return \Illuminate\Queue\SyncQueue::pop($queue);
+            return \Illuminate\Queue\RedisQueue::pop($queue);
+        }
+        
+        /**
+         * Migrate the delayed jobs that are ready to the regular queue.
+         *
+         * @param string $from
+         * @param string $to
+         * @return array 
+         * @static 
+         */
+        public static function migrateExpiredJobs($from, $to)
+        {
+            return \Illuminate\Queue\RedisQueue::migrateExpiredJobs($from, $to);
+        }
+        
+        /**
+         * Delete a reserved job from the queue.
+         *
+         * @param string $queue
+         * @param \Illuminate\Queue\Jobs\RedisJob $job
+         * @return void 
+         * @static 
+         */
+        public static function deleteReserved($queue, $job)
+        {
+            \Illuminate\Queue\RedisQueue::deleteReserved($queue, $job);
+        }
+        
+        /**
+         * Delete a reserved job from the reserved queue and release it.
+         *
+         * @param string $queue
+         * @param \Illuminate\Queue\Jobs\RedisJob $job
+         * @param int $delay
+         * @return void 
+         * @static 
+         */
+        public static function deleteAndRelease($queue, $job, $delay)
+        {
+            \Illuminate\Queue\RedisQueue::deleteAndRelease($queue, $job, $delay);
+        }
+        
+        /**
+         * Get the underlying Redis instance.
+         *
+         * @return \Illuminate\Contracts\Redis\Factory 
+         * @static 
+         */
+        public static function getRedis()
+        {
+            return \Illuminate\Queue\RedisQueue::getRedis();
         }
         
         /**
@@ -5977,7 +6083,7 @@ namespace Illuminate\Support\Facades {
         public static function pushOn($queue, $job, $data = '')
         {
             //Method inherited from \Illuminate\Queue\Queue            
-            return \Illuminate\Queue\SyncQueue::pushOn($queue, $job, $data);
+            return \Illuminate\Queue\RedisQueue::pushOn($queue, $job, $data);
         }
         
         /**
@@ -5993,7 +6099,7 @@ namespace Illuminate\Support\Facades {
         public static function laterOn($queue, $delay, $job, $data = '')
         {
             //Method inherited from \Illuminate\Queue\Queue            
-            return \Illuminate\Queue\SyncQueue::laterOn($queue, $delay, $job, $data);
+            return \Illuminate\Queue\RedisQueue::laterOn($queue, $delay, $job, $data);
         }
         
         /**
@@ -6008,7 +6114,7 @@ namespace Illuminate\Support\Facades {
         public static function bulk($jobs, $data = '', $queue = null)
         {
             //Method inherited from \Illuminate\Queue\Queue            
-            return \Illuminate\Queue\SyncQueue::bulk($jobs, $data, $queue);
+            return \Illuminate\Queue\RedisQueue::bulk($jobs, $data, $queue);
         }
         
         /**
@@ -6020,7 +6126,7 @@ namespace Illuminate\Support\Facades {
         public static function getConnectionName()
         {
             //Method inherited from \Illuminate\Queue\Queue            
-            return \Illuminate\Queue\SyncQueue::getConnectionName();
+            return \Illuminate\Queue\RedisQueue::getConnectionName();
         }
         
         /**
@@ -6033,7 +6139,7 @@ namespace Illuminate\Support\Facades {
         public static function setConnectionName($name)
         {
             //Method inherited from \Illuminate\Queue\Queue            
-            return \Illuminate\Queue\SyncQueue::setConnectionName($name);
+            return \Illuminate\Queue\RedisQueue::setConnectionName($name);
         }
         
         /**
@@ -6046,7 +6152,7 @@ namespace Illuminate\Support\Facades {
         public static function setContainer($container)
         {
             //Method inherited from \Illuminate\Queue\Queue            
-            \Illuminate\Queue\SyncQueue::setContainer($container);
+            \Illuminate\Queue\RedisQueue::setContainer($container);
         }
         
     }         
@@ -6216,6 +6322,35 @@ namespace Illuminate\Support\Facades {
         public static function setSession($session)
         {
             \Illuminate\Routing\Redirector::setSession($session);
+        }
+        
+    }         
+
+    class Redis {
+        
+        /**
+         * Get a Redis connection by name.
+         *
+         * @param string|null $name
+         * @return \Illuminate\Redis\Connections\Connection 
+         * @static 
+         */
+        public static function connection($name = null)
+        {
+            return \Illuminate\Redis\RedisManager::connection($name);
+        }
+        
+        /**
+         * Resolve the given connection by name.
+         *
+         * @param string|null $name
+         * @return \Illuminate\Redis\Connections\Connection 
+         * @throws \InvalidArgumentException
+         * @static 
+         */
+        public static function resolve($name = null)
+        {
+            return \Illuminate\Redis\RedisManager::resolve($name);
         }
         
     }         
@@ -6993,7 +7128,7 @@ namespace Illuminate\Support\Facades {
          * ("Client-Ip" for instance), configure it via "setTrustedHeaderName()" with
          * the "client-ip" key.
          *
-         * @return string The client IP address
+         * @return string|null The client IP address
          * @see getClientIps()
          * @see http://en.wikipedia.org/wiki/X-Forwarded-For
          * @static 
@@ -7096,7 +7231,7 @@ namespace Illuminate\Support\Facades {
          * If your reverse proxy uses a different header name than "X-Forwarded-Port",
          * configure it via "setTrustedHeaderName()" with the "client-port" key.
          *
-         * @return string 
+         * @return int|string can be a string if fetched from the server bag
          * @static 
          */
         public static function getPort()
@@ -9288,7 +9423,7 @@ namespace Illuminate\Support\Facades {
         }
         
         /**
-         * Checks if an a key is present and not null.
+         * Checks if a key is present and not null.
          *
          * @param string|array $key
          * @return bool 
@@ -10584,6 +10719,20 @@ namespace Illuminate\Support\Facades {
         }
         
         /**
+         * Register a custom implicit validator extension.
+         *
+         * @param string $rule
+         * @param \Closure|string $extension
+         * @param string $message
+         * @return void 
+         * @static 
+         */
+        public static function extendDependent($rule, $extension, $message = null)
+        {
+            \Illuminate\Validation\Factory::extendDependent($rule, $extension, $message);
+        }
+        
+        /**
          * Register a custom implicit validator message replacer.
          *
          * @param string $rule
@@ -11256,7 +11405,7 @@ namespace Illuminate\Support\Facades {
         /**
          * Get an instance of the last loop in the stack.
          *
-         * @return \StdClass|null 
+         * @return \stdClass|null 
          * @static 
          */
         public static function getLastLoop()
@@ -11515,20 +11664,6 @@ namespace App\Facades {
         }
         
     }         
-
-    class Reprice {
-        
-        /**
-         * 
-         *
-         * @static 
-         */
-        public static function reprice($listing)
-        {
-            return \App\Services\RepriceService::reprice($listing);
-        }
-        
-    }         
 }
     
     
@@ -11577,6 +11712,8 @@ namespace {
     class Queue extends \Illuminate\Support\Facades\Queue {}
     
     class Redirect extends \Illuminate\Support\Facades\Redirect {}
+    
+    class Redis extends \Illuminate\Support\Facades\Redis {}
     
     class Request extends \Illuminate\Support\Facades\Request {}
     
@@ -11716,7 +11853,7 @@ namespace {
          *
          * @param mixed $id
          * @param array $columns
-         * @return mixed 
+         * @return \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Collection|static[]|static|null 
          * @static 
          */
         public static function find($id, $columns = array())
@@ -12016,6 +12153,18 @@ namespace {
         public static function without($relations)
         {
             return \Illuminate\Database\Eloquent\Builder::without($relations);
+        }
+        
+        /**
+         * Create a new instance of the model being queried.
+         *
+         * @param array $attributes
+         * @return \Illuminate\Database\Eloquent\Model 
+         * @static 
+         */
+        public static function newModelInstance($attributes = array())
+        {
+            return \Illuminate\Database\Eloquent\Builder::newModelInstance($attributes);
         }
         
         /**
@@ -13560,8 +13709,6 @@ namespace {
     class Transformer extends \Znck\Transform\Facades\Transform {}
     
     class Currency extends \App\Facades\Currency {}
-    
-    class Reprice extends \App\Facades\Reprice {}
     
 }
 
