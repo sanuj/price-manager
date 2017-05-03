@@ -35,8 +35,27 @@ class Company extends Model
      */
     public function credentialsFor(Marketplace $marketplace)
     {
-        return $this->marketplaces()
-                    ->wherePivot('marketplace_id', $marketplace->getKey())
-                    ->first()->pivot;
+        $result = $this->marketplaces()
+                       ->wherePivot('marketplace_id', $marketplace->getKey())
+                       ->first();
+
+        return $result ? $result->pivot : null;
+    }
+
+    public function addOrUpdateMarketplace(Marketplace $marketplace, array $attributes): bool
+    {
+        $pivot = $this->credentialsFor($marketplace);
+
+        if (!$pivot) {
+            /** @var \App\CompanyMarketplace $pivot */
+            $pivot = $this->marketplaces()->newPivot();
+
+            $pivot->company()->associate($this);
+            $pivot->marketplace()->associate($marketplace);
+        }
+
+        $pivot->fill($attributes);
+
+        return $pivot->save();
     }
 }

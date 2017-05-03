@@ -15,9 +15,7 @@ return [
     |
     */
 
-    'default' => env('QUEUE_DRIVER', 'sync'),
-
-    'repricer' => env('REPRICER_QUEUE_DRIVER', 'watch'),
+    'default' => env('QUEUE_DRIVER', 'sqs'),
 
     /*
     |--------------------------------------------------------------------------
@@ -50,15 +48,6 @@ return [
             'retry_after' => 90,
         ],
 
-        'sqs' => [
-            'driver' => 'sqs',
-            'key' => env('SQS_PUBLIC_KEY'),
-            'secret' => env('SQL_SECRET_KEY'),
-            'prefix' => env('SQS_PREFIX_URL'),
-            'queue' => 'exponent-default',
-            'region' => env('SQS_REGION', 'us-east-1'),
-        ],
-
         'redis' => [
             'driver' => 'redis',
             'connection' => 'default',
@@ -66,12 +55,12 @@ return [
             'retry_after' => 90,
         ],
 
-        'watch' => [
+        'sqs' => [
             'driver' => 'sqs',
             'key' => env('SQS_PUBLIC_KEY'),
             'secret' => env('SQL_SECRET_KEY'),
             'prefix' => env('SQS_PREFIX_URL'),
-            'queue' => 'exponent-watch',
+            'queue' => 'exponent-default',
             'region' => env('SQS_REGION', 'us-east-1'),
         ],
     ],

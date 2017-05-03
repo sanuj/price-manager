@@ -2,8 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Company;
-use App\Marketplace;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -41,18 +39,6 @@ abstract class SelfSchedulingJob implements ShouldQueue
     protected $manager;
 
     /**
-     * Create a new job instance.
-     *
-     * @param \App\Company $company
-     * @param \App\Marketplace $marketplace
-     */
-    public function __construct(Company $company, Marketplace $marketplace)
-    {
-        $this->company = $company;
-        $this->marketplace = $marketplace;
-    }
-
-    /**
      * @return int
      */
     public function getPerRequestCount(): int
@@ -88,10 +74,12 @@ abstract class SelfSchedulingJob implements ShouldQueue
     {
         $job = new PriceWatcherJob($this->company, $this->marketplace);
 
+        $this->debug('Rescheduling', ['queue' => $this->queue]);
+
         if ($seconds) {
-            Queue::connection($this->connection)->laterOn($this->queue, $seconds, $job);
+            Queue::connection()->laterOn($this->queue, $seconds, $job);
         } else {
-            Queue::connection($this->connection)->pushOn($this->queue, $job);
+            Queue::connection()->pushOn($this->queue, $job);
         }
     }
 

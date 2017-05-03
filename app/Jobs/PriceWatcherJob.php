@@ -9,16 +9,24 @@ use App\Marketplace;
 use App\MarketplaceListing;
 use App\Mongo\Snapshot;
 use Carbon\Carbon;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Log;
-use Queue;
 
 class PriceWatcherJob extends SelfSchedulingJob
 {
+    /**
+     * Create a new job instance.
+     *
+     * @param \App\Company $company
+     * @param \App\Marketplace $marketplace
+     */
+    public function __construct(Company $company, Marketplace $marketplace)
+    {
+        $this->company = $company;
+        $this->marketplace = $marketplace;
+        $this->queue = 'exponent-watch';
+        $this->connection = null;
+    }
+
     /**
      * Execute the job.
      *
@@ -46,10 +54,8 @@ class PriceWatcherJob extends SelfSchedulingJob
         $api->use($this->company->credentialsFor($this->marketplace));
 
         try {
-            $payload = $listings->pluck('uid')->toArray();
-
-            $offers = $api->getPrice($payload);
-            $competitors = $api->getOffers($payload);
+            $offers = $api->getPrice($listings);
+            $competitors = $api->getOffers($listings);
 
             foreach ($listings as $listing) {
                 $this->recordPriceSnapshot($listing, $offers, $competitors);
@@ -82,7 +88,7 @@ class PriceWatcherJob extends SelfSchedulingJob
                                  ->get();
     }
 
-    protected function noListingsLeft(): void
+    protected function noListingsLeft()
     {
         $this->debug('No tasks left. Rescheduling after '.$this->getFrequency().' minutes.');
         $listing = MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
@@ -90,7 +96,8 @@ class PriceWatcherJob extends SelfSchedulingJob
                                      ->orderBy('updated_at', 'asc')->first();
 
         if ($listing) {
-            $this->reschedule(60 * min(15, abs(Carbon::now()->diffInMinutes($listing->updated_at))));
+            $sinceLast = abs(Carbon::now()->diffInMinutes($listing->updated_at));
+            $this->reschedule(60 * min(15, max(0, 15 - $sinceLast)));
         } else {
             $this->reschedule(60 * $this->getFrequency());
         }
@@ -101,7 +108,7 @@ class PriceWatcherJob extends SelfSchedulingJob
      * @param $offers
      * @param $competitors
      */
-    protected function recordPriceSnapshot(MarketplaceListing $listing, $offers, $competitors): void
+    protected function recordPriceSnapshot(MarketplaceListing $listing, $offers, $competitors)
     {
         $snapshot = new Snapshot([
             'repricer_listing_id' => $listing->getKey(),
@@ -113,6 +120,12 @@ class PriceWatcherJob extends SelfSchedulingJob
             }, $competitors[$listing->uid] ?? []),
             'timestamp' => Carbon::now(),
         ]);
+
+        if (app()->environment('testing')) {
+            $listing->touch();
+
+            return;
+        }
 
         if (!$snapshot->save()) {
             Log::error('Failed to store listing in mongodb.', $snapshot->toArray());

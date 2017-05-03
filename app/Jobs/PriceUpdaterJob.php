@@ -7,16 +7,8 @@ use App\Exceptions\ThrottleLimitReachedException;
 use App\Managers\MarketplaceManager;
 use App\Marketplace;
 use App\MarketplaceListing;
-use App\Mongo\Snapshot;
-use Carbon\Carbon;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Log;
-use Queue;
 
 class PriceUpdaterJob extends SelfSchedulingJob
 {
@@ -26,6 +18,20 @@ class PriceUpdaterJob extends SelfSchedulingJob
      * @var int
      */
     protected $perRequestCount = 2000;
+
+    /**
+     * Create a new job instance.
+     *
+     * @param \App\Company $company
+     * @param \App\Marketplace $marketplace
+     */
+    public function __construct(Company $company, Marketplace $marketplace)
+    {
+        $this->company = $company;
+        $this->marketplace = $marketplace;
+        $this->queue = 'exponent-update';
+        $this->connection = null;
+    }
 
     /**
      * Execute the job.
@@ -78,6 +84,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
             return;
         }
 
+        /** @var MarketplaceListing $listing */
         foreach ($listings as $listing) {
             Log::debug("\tUpdate ({$listing->uid}): {$listing->getOriginal('marketplace_selling_price')} -> {$listings->marketplace_selling_price}");
         }

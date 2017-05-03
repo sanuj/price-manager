@@ -8,28 +8,28 @@ interface MarketplaceDriverContract
     /**
      * Get price & meta from marketplace API for owner's listing.
      *
-     * @param string|array $asin
+     * @param Collection|\App\MarketplaceListing[] $listings
      *
      * @return \App\Marketplace\ProductOffer[][]
      */
-    public function getPrice($asin);
+    public function getPrice(Collection $listings);
 
     /**
-     * @param \App\MarketplaceListing[]|\Illuminate\Support\Collection $asin
+     * @param \App\MarketplaceListing[]|\Illuminate\Support\Collection $listings
      *
      * @return void TODO: Figure it out. (Return Value)
      * TODO: Figure it out. (Return Value)
      */
-    public function setPrice(Collection $asin);
+    public function setPrice(Collection $listings);
 
     /**
      * Get price & meta from marketplace API.
      *
-     * @param string|array $asin
+     * @param Collection|\App\MarketplaceListing[] $listings
      *
      * @return \App\Marketplace\ProductOffer[][]
      */
-    public function getOffers($asin);
+    public function getOffers(Collection $listings);
 
     public function use (CompanyMarketplace $marketplace, array $credentials = []): self;
 }
