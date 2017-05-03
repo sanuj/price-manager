@@ -63,6 +63,24 @@ return [
             'queue' => 'exponent-default',
             'region' => env('SQS_REGION', 'us-east-1'),
         ],
+
+        'exponent-watch' => [
+            'driver' => 'sqs',
+            'key' => env('SQS_PUBLIC_KEY'),
+            'secret' => env('SQL_SECRET_KEY'),
+            'prefix' => env('SQS_PREFIX_URL'),
+            'queue' => 'exponent-watch',
+            'region' => env('SQS_REGION', 'us-east-1'),
+        ],
+
+        'exponent-update' => [
+            'driver' => 'sqs',
+            'key' => env('SQS_PUBLIC_KEY'),
+            'secret' => env('SQL_SECRET_KEY'),
+            'prefix' => env('SQS_PREFIX_URL'),
+            'queue' => 'exponent-update',
+            'region' => env('SQS_REGION', 'us-east-1'),
+        ],
     ],
 
     /*

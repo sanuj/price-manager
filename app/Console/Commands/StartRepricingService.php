@@ -54,10 +54,10 @@ class StartRepricingService extends Command
             $companies->each(function (Company $company) {
                 $company->marketplaces->each(function (Marketplace $marketplace) use ($company) {
                     $watcher = new PriceWatcherJob($company, $marketplace);
-                    Queue::connection()->pushOn($watcher->queue, $watcher);
+                    Queue::connection($watcher->connection)->push($watcher);
 
                     $updater = new PriceUpdaterJob($company, $marketplace);
-                    Queue::connection()->pushOn($updater->queue, $updater);
+                    Queue::connection($updater->connection)->push($updater);
                 });
             });
         });

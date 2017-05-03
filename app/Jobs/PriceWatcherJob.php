@@ -23,8 +23,7 @@ class PriceWatcherJob extends SelfSchedulingJob
     {
         $this->company = $company;
         $this->marketplace = $marketplace;
-        $this->queue = 'exponent-watch';
-        $this->connection = null;
+        $this->connection = 'exponent-watch';
     }
 
     /**

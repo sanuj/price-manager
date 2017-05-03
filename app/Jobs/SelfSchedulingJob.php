@@ -77,9 +77,9 @@ abstract class SelfSchedulingJob implements ShouldQueue
         $this->debug('Rescheduling', ['queue' => $this->queue]);
 
         if ($seconds) {
-            Queue::connection()->laterOn($this->queue, $seconds, $job);
+            Queue::connection($this->connection)->later($seconds, $job);
         } else {
-            Queue::connection()->pushOn($this->queue, $job);
+            Queue::connection($this->connection)->push($job);
         }
     }
 
