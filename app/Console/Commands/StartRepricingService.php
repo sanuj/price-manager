@@ -53,11 +53,8 @@ class StartRepricingService extends Command
         Company::chunk(50, function (Collection $companies) {
             $companies->each(function (Company $company) {
                 $company->marketplaces->each(function (Marketplace $marketplace) use ($company) {
-                    $watcher = new PriceWatcherJob($company, $marketplace);
-                    Queue::connection()->pushOn($watcher->queue, $watcher);
-
-                    $updater = new PriceUpdaterJob($company, $marketplace);
-                    Queue::connection()->pushOn($updater->queue, $updater);
+                    dispatch(new PriceWatcherJob($company, $marketplace));
+                    dispatch(new PriceUpdaterJob($company, $marketplace));
                 });
             });
         });
