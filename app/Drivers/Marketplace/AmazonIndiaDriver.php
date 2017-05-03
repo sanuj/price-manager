@@ -64,9 +64,10 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
                 return $this->getPriceWithPricedOffersAPI((array)$ASINs);
             }
         } catch (MarketplaceWebServiceProducts_Exception $e) {
-            Log::debug('getLowestPricedOffersForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
             $error = $e;
         }
+
+        Log::debug('getLowestPricedOffersForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
 
         try {
             if ($this->canUseOfferListingAPI()) {
@@ -75,9 +76,10 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
                 return $this->getPriceWithOfferListingAPI((array)$ASINs);
             }
         } catch (MarketplaceWebServiceProducts_Exception $e) {
-            Log::debug('getLowestOfferListingsForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
             $error = $e;
         }
+
+        Log::debug('getLowestOfferListingsForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
 
         throw new ThrottleLimitReachedException('Amazon MWS API limit reached.', 0, $error);
     }
