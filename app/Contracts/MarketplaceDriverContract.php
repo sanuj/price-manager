@@ -15,10 +15,9 @@ interface MarketplaceDriverContract
     public function getPrice($asin);
 
     /**
-     * @param \App\Contracts\Collection|\App\MarketplaceListing[] $asin
+     * @param \App\MarketplaceListing[]|\Illuminate\Support\Collection $asin
      *
-     * @return void
-     *
+     * @return void TODO: Figure it out. (Return Value)
      * TODO: Figure it out. (Return Value)
      */
     public function setPrice(Collection $asin);

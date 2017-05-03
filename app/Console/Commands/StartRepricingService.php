@@ -3,7 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Company;
-use App\Jobs\RepricingJob;
+use App\Jobs\PriceUpdaterJob;
+use App\Jobs\PriceWatcherJob;
 use App\Managers\MarketplaceManager;
 use App\Marketplace;
 use Illuminate\Console\Command;
@@ -53,12 +54,16 @@ class StartRepricingService extends Command
             $jobs = $companies->reduce(function ($jobs, Company $company) {
                 return array_merge($jobs,
                     $company->marketplaces->map(function (Marketplace $marketplace) use ($company) {
-                        $job = new RepricingJob($company, $marketplace);
-
-                        // TODO: Configure frequency & rate for the marketplace/company.
+                        $job = new PriceWatcherJob($company, $marketplace);
 
                         return $job;
-                    })->toArray());
+                    })->toArray(),
+                    $company->marketplaces->map(function (Marketplace $marketplace) use ($company) {
+                        $job = new PriceUpdaterJob($company, $marketplace);
+
+                        return $job;
+                    })->toArray()
+                );
             }, []);
 
             Queue::connection($this->queue)->bulk($jobs);
