@@ -36,6 +36,22 @@ class ThrottleService
         $this->cache = resolve(Cache::class);
     }
 
+    /**
+     * @return int
+     */
+    public function getLimit(): int
+    {
+        return $this->limit;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTime(): int
+    {
+        return $this->time;
+    }
+
     public function hit()
     {
         if ($this->count()) {

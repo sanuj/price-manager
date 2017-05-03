@@ -20,33 +20,12 @@ use Queue;
 
 class PriceUpdaterJob extends SelfSchedulingJob
 {
-
-
     /**
-     * @var \App\Company
-     */
-    public $company;
-
-    /**
-     * @var \App\Marketplace
-     */
-    public $marketplace;
-    /**
-     * @var \App\Managers\MarketplaceManager
-     */
-    protected $manager;
-
-    /**
-     * Create a new job instance.
+     * Bundle multiple reprice requests.
      *
-     * @param \App\Company $company
-     * @param \App\Marketplace $marketplace
+     * @var int
      */
-    public function __construct(Company $company, Marketplace $marketplace)
-    {
-        $this->company = $company;
-        $this->marketplace = $marketplace;
-    }
+    protected $perRequestCount = 2000;
 
     /**
      * Execute the job.
@@ -81,7 +60,9 @@ class PriceUpdaterJob extends SelfSchedulingJob
         $this->reschedule(60 * $this->getFrequency());
     }
 
-
+    /**
+     * @param \Illuminate\Database\Eloquent\Collection|MarketplaceListing[] $listings
+     */
     protected function updatePrice(Collection $listings)
     {
         $api = $this->manager->driver($this->marketplace->name);
@@ -97,7 +78,14 @@ class PriceUpdaterJob extends SelfSchedulingJob
             return;
         }
 
-        $api->setPrice($listings);
+        foreach ($listings as $listing) {
+            Log::debug("\tUpdate ({$listing->uid}): {$listing->getOriginal('marketplace_selling_price')} -> {$listings->marketplace_selling_price}");
+        }
+
+        if (config('pricing.should_update')) {
+            $api->setPrice($listings);
+        }
+
     }
 
     protected function reprice(MarketplaceListing $listing): MarketplaceListing
@@ -105,8 +93,6 @@ class PriceUpdaterJob extends SelfSchedulingJob
         $selector = $this->getSelector($listing);
         $algorithm = $selector->algorithm($listing);
         $price = $algorithm->predict($listing);
-
-        $diff = round(abs($listing->marketplace_selling_price - $price), 2);
 
         with(new PriceHistory([
             'marketplace_listing_id' => $listing->getKey(),
@@ -116,7 +102,8 @@ class PriceUpdaterJob extends SelfSchedulingJob
             'price' => $price,
         ]))->save();
 
-        if (config('pricing.should_update') and $diff > .99) {
+        $diff = round(abs($listing->marketplace_selling_price - $price), 2);
+        if ($diff > .99) {
             $listing->marketplace_selling_price = $price;
         }
 
@@ -130,7 +117,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
      */
     protected function getSelector(MarketplaceListing $listing)
     {
-        $selector = $listing->algorithm ?? $this->getDefaultSelectorName();
+        $selector = $listing->repricing_algorithm ? $listing->repricing_algorithm['selector'] : $this->getDefaultSelectorName();
 
         return resolve(config('pricing.selectors.'.$selector));
     }

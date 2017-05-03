@@ -106,7 +106,6 @@ namespace App{
  * @property int $company_id
  * @property int $company_product_id
  * @property string $uid
- * @property string $sku
  * @property string $url
  * @property string $ref_num
  * @property int $selling_price
@@ -119,6 +118,7 @@ namespace App{
  * @property float $marketplace_max_price
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
+ * @property array $repricing_algorithm
  * @property-read \App\Company $company
  * @property-read \App\CompanyProduct $companyProduct
  * @property-read \App\Marketplace $marketplace
@@ -137,8 +137,8 @@ namespace App{
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereMaxPrice($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereMinPrice($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereRefNum($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereRepricingAlgorithm($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereSellingPrice($value)
- * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereSku($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereUid($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereUpdatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereUrl($value)

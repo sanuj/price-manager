@@ -13,6 +13,8 @@ use CaponicaAmazonMwsComplete\AmazonClient\MwsProductClient;
 use CaponicaAmazonMwsComplete\ClientPack\MwsFeedAndReportClientPack;
 use DOMDocument;
 use Illuminate\Support\Collection;
+use Log;
+use MarketplaceWebServiceProducts_Exception;
 use SimpleXMLElement;
 
 class AmazonIndiaDriver implements MarketplaceDriverContract
@@ -160,7 +162,7 @@ FEED;
             }
 
             return $result;
-        } catch (\MarketplaceWebServiceProducts_Exception $e) {
+        } catch (MarketplaceWebServiceProducts_Exception $e) {
             throw new ThrottleLimitReachedException('Amazon MWS API limit reached.', 0, $e);
         }
     }
@@ -192,7 +194,8 @@ FEED;
             if ($this->canUsePricedOffersAPI()) {
                 return $this->getPriceWithPricedOffersAPI((array)$asin);
             }
-        } catch (\MarketplaceWebServiceProducts_Exception $e) {
+        } catch (MarketplaceWebServiceProducts_Exception $e) {
+            Log::debug('getLowestPricedOffersForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
             $error = $e;
         }
 
@@ -200,7 +203,8 @@ FEED;
             if ($this->canUseOfferListingAPI()) {
                 return $this->getPriceWithOfferListingAPI((array)$asin);
             }
-        } catch (\MarketplaceWebServiceProducts_Exception $e) {
+        } catch (MarketplaceWebServiceProducts_Exception $e) {
+            Log::debug('getLowestOfferListingsForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
             $error = $e;
         }
 
@@ -346,7 +350,7 @@ FEED;
     protected function canUseOfferListingAPI(): bool
     {
         if ($this->offerListingThrottle === null) {
-            $this->offerListingThrottle = new ThrottleService($this->cacheKey('OfferListing'), 3, 1);
+            $this->offerListingThrottle = new ThrottleService($this->cacheKey('getLowestOfferListingsForASIN'), 3, 1);
         }
 
         return $this->offerListingThrottle->attempt();
@@ -358,7 +362,7 @@ FEED;
     protected function canUsePricedOffersAPI(): bool
     {
         if ($this->pricedOfferThrottle === null) {
-            $this->pricedOfferThrottle = new ThrottleService($this->cacheKey('PricedOffer'), 10, 60);
+            $this->pricedOfferThrottle = new ThrottleService($this->cacheKey('getLowestPricedOffersForASIN'), 10, 60);
         }
 
         return $this->pricedOfferThrottle->attempt();

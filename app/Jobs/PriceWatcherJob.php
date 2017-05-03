@@ -20,32 +20,6 @@ use Queue;
 class PriceWatcherJob extends SelfSchedulingJob
 {
     /**
-     * @var \App\Company
-     */
-    public $company;
-
-    /**
-     * @var \App\Marketplace
-     */
-    public $marketplace;
-    /**
-     * @var \App\Managers\MarketplaceManager
-     */
-    protected $manager;
-
-    /**
-     * Create a new job instance.
-     *
-     * @param \App\Company $company
-     * @param \App\Marketplace $marketplace
-     */
-    public function __construct(Company $company, Marketplace $marketplace)
-    {
-        $this->company = $company;
-        $this->marketplace = $marketplace;
-    }
-
-    /**
      * Execute the job.
      *
      * @return void
@@ -56,7 +30,7 @@ class PriceWatcherJob extends SelfSchedulingJob
         error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE); // NOTICE: MWS SDK has deprecated code.
         $this->manager = resolve(MarketplaceManager::class);
 
-        $this->debug('Starting repricer for '.$this->company->name);
+        $this->debug('Run for '.$this->company->name);
 
         $listings = $this->getRequiredListings();
 

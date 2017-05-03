@@ -35,7 +35,7 @@ class StartRepricingService extends Command
     /**
      * @var string
      */
-    protected $queue;
+    protected $connectionName;
 
     /**
      * Create a new command instance.
@@ -43,30 +43,34 @@ class StartRepricingService extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->queue = config('queue.repricer');
+        $this->connectionName = config('queue.repricer');
     }
 
     public function handle()
     {
         $this->call('repricer:stop');
-
+        $this->line('Starting exponent price watcher & updater.');
         Company::chunk(50, function (Collection $companies) {
             $jobs = $companies->reduce(function ($jobs, Company $company) {
                 return array_merge($jobs,
                     $company->marketplaces->map(function (Marketplace $marketplace) use ($company) {
                         $job = new PriceWatcherJob($company, $marketplace);
+                        $job->onConnection($this->connectionName);
+                        $job->onQueue('exponent-watch');
 
                         return $job;
                     })->toArray(),
                     $company->marketplaces->map(function (Marketplace $marketplace) use ($company) {
                         $job = new PriceUpdaterJob($company, $marketplace);
+                        $job->onConnection($this->connectionName);
+                        $job->onQueue('exponent-update');
 
                         return $job;
                     })->toArray()
                 );
             }, []);
 
-            Queue::connection($this->queue)->bulk($jobs);
+            Queue::connection($this->connectionName)->bulk($jobs);
         });
     }
 }

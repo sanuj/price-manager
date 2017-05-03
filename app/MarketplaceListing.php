@@ -31,6 +31,7 @@ class MarketplaceListing extends Model
         'marketplace_max_price' => 'float',
 
         'company_product_id' => 'int',
+        'repricing_algorithm' => 'array',
     ];
 
     public function marketplace()

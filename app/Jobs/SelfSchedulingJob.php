@@ -2,7 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Company;
+use App\Marketplace;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
@@ -13,17 +16,41 @@ abstract class SelfSchedulingJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     /**
+     * @var \App\Marketplace
+     */
+    public $marketplace;
+    /**
+     * @var \App\Company
+     */
+    public $company;
+    /**
      * Bundle multiple reprice requests.
      *
      * @var int
      */
-    protected $perRequestCount = 1000;
+    protected $perRequestCount = 20;
     /**
      * Number of minutes after which listing is repriced.
      *
      * @var int
      */
     protected $frequency = 15;
+    /**
+     * @var \App\Managers\MarketplaceManager
+     */
+    protected $manager;
+
+    /**
+     * Create a new job instance.
+     *
+     * @param \App\Company $company
+     * @param \App\Marketplace $marketplace
+     */
+    public function __construct(Company $company, Marketplace $marketplace)
+    {
+        $this->company = $company;
+        $this->marketplace = $marketplace;
+    }
 
     /**
      * @return int
@@ -61,16 +88,15 @@ abstract class SelfSchedulingJob implements ShouldQueue
     {
         $job = new PriceWatcherJob($this->company, $this->marketplace);
 
-        // TODO: Push on ~same queue~ again.
         if ($seconds) {
-            Queue::connection(config('queue.repricer'))->later($seconds, $job);
+            Queue::connection($this->connection)->laterOn($this->queue, $seconds, $job);
         } else {
-            Queue::connection(config('queue.repricer'))->push($job);
+            Queue::connection($this->connection)->pushOn($this->queue, $job);
         }
     }
 
     protected function debug(string $message, array $payload = [])
     {
-        Log::debug('RepricerService::Company('.$this->company->getKey().') - '.$message, $payload);
+        Log::info('RepricerService::Company('.$this->company->getKey().') - '.$message, $payload);
     }
 }
