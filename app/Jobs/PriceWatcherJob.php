@@ -88,7 +88,7 @@ class PriceWatcherJob extends SelfSchedulingJob
                                  ->get();
     }
 
-    protected function noListingsLeft(): void
+    protected function noListingsLeft()
     {
         $this->debug('No tasks left. Rescheduling after '.$this->getFrequency().' minutes.');
         $listing = MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
