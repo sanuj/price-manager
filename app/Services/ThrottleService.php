@@ -21,18 +21,18 @@ class ThrottleService
     /**
      * @var int
      */
-    protected $time;
+    protected $minutes;
 
     /**
      * @var int
      */
     protected $count;
 
-    public function __construct(string $name, int $limit, int $time)
+    public function __construct(string $name, int $limit, int $minutes)
     {
         $this->name = $name.'__count__';
         $this->limit = $limit;
-        $this->time = $time;
+        $this->minutes = $minutes;
         $this->cache = resolve(Cache::class);
     }
 
@@ -47,9 +47,9 @@ class ThrottleService
     /**
      * @return int
      */
-    public function getTime(): int
+    public function getMinutes(): int
     {
-        return $this->time;
+        return $this->minutes;
     }
 
     public function hit()
@@ -58,7 +58,7 @@ class ThrottleService
             $this->cache->increment($this->name);
             $this->count++;
         } else {
-            $this->cache->put($this->name, 1, $this->time);
+            $this->cache->put($this->name, 1, $this->minutes);
             $this->count = 1;
         }
     }

@@ -192,6 +192,7 @@ FEED;
         $error = null;
         try {
             if ($this->canUsePricedOffersAPI()) {
+                $this->pricedOfferThrottle->hit();
                 return $this->getPriceWithPricedOffersAPI((array)$asin);
             }
         } catch (MarketplaceWebServiceProducts_Exception $e) {
@@ -201,6 +202,7 @@ FEED;
 
         try {
             if ($this->canUseOfferListingAPI()) {
+                $this->offerListingThrottle->hit();
                 return $this->getPriceWithOfferListingAPI((array)$asin);
             }
         } catch (MarketplaceWebServiceProducts_Exception $e) {
@@ -353,7 +355,7 @@ FEED;
             $this->offerListingThrottle = new ThrottleService($this->cacheKey('getLowestOfferListingsForASIN'), 3, 1);
         }
 
-        return $this->offerListingThrottle->attempt();
+        return $this->offerListingThrottle->check();
     }
 
     /**
@@ -365,7 +367,7 @@ FEED;
             $this->pricedOfferThrottle = new ThrottleService($this->cacheKey('getLowestPricedOffersForASIN'), 10, 60);
         }
 
-        return $this->pricedOfferThrottle->attempt();
+        return $this->pricedOfferThrottle->check();
     }
 
 
