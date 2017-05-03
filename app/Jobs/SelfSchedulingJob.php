@@ -2,8 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Company;
-use App\Marketplace;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

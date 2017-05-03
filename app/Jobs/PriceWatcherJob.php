@@ -96,7 +96,8 @@ class PriceWatcherJob extends SelfSchedulingJob
                                      ->orderBy('updated_at', 'asc')->first();
 
         if ($listing) {
-            $this->reschedule(60 * min(15, abs(Carbon::now()->diffInMinutes($listing->updated_at))));
+            $sinceLast = abs(Carbon::now()->diffInMinutes($listing->updated_at));
+            $this->reschedule(60 * min(15, max(0, 15 - $sinceLast)));
         } else {
             $this->reschedule(60 * $this->getFrequency());
         }
