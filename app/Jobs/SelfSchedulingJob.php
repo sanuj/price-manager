@@ -76,12 +76,12 @@ abstract class SelfSchedulingJob implements ShouldQueue
     {
         $job = new PriceWatcherJob($this->company, $this->marketplace);
 
-        $this->debug('Rescheduling', ['connection' => $this->connection, 'queue' => $this->queue]);
+        $this->debug('Rescheduling', ['queue' => $this->queue]);
 
         if ($seconds) {
-            Queue::connection($this->connection)->laterOn($this->queue, $seconds, $job);
+            Queue::connection()->laterOn($this->queue, $seconds, $job);
         } else {
-            Queue::connection($this->connection)->pushOn($this->queue, $job);
+            Queue::connection()->pushOn($this->queue, $job);
         }
     }
 

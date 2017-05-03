@@ -23,6 +23,8 @@ class PriceWatcherJob extends SelfSchedulingJob
     {
         $this->company = $company;
         $this->marketplace = $marketplace;
+        $this->queue = 'exponent-watch';
+        $this->connection = null;
     }
 
     /**
@@ -52,10 +54,8 @@ class PriceWatcherJob extends SelfSchedulingJob
         $api->use($this->company->credentialsFor($this->marketplace));
 
         try {
-            $payload = $listings->pluck('uid')->toArray();
-
-            $offers = $api->getPrice($payload);
-            $competitors = $api->getOffers($payload);
+            $offers = $api->getPrice($listings);
+            $competitors = $api->getOffers($listings);
 
             foreach ($listings as $listing) {
                 $this->recordPriceSnapshot($listing, $offers, $competitors);
@@ -119,6 +119,12 @@ class PriceWatcherJob extends SelfSchedulingJob
             }, $competitors[$listing->uid] ?? []),
             'timestamp' => Carbon::now(),
         ]);
+
+        if (app()->environment('testing')) {
+            $listing->touch();
+
+            return;
+        }
 
         if (!$snapshot->save()) {
             Log::error('Failed to store listing in mongodb.', $snapshot->toArray());

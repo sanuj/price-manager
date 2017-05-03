@@ -58,7 +58,7 @@ class AmazonIndiaDriverTest extends TestCase
     {
         $amazon = $this->driver();
 
-        $result = $amazon->getPrice('B00S6JCFB4');
+        $result = $amazon->getPrice(collect([['uid' => 'B00S6JCFB4']]));
 
         $this->assertArraySubset([
             'is_fulfilled' => true,

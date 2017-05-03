@@ -45,155 +45,23 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         $this->credentials = $credentials;
     }
 
-    public function setPrice(Collection $listings)
-    {
-        $messages = $listings->reduce(function ($messages, MarketplaceListing $listing) {
-            return $messages.PHP_EOL.<<<MESSAGE
-<Message>
-    <MessageID>{$listing->getKey()}</MessageID> 
-    <Price>
-      <SKU>{$listing->companyProduct->sku}</SKU>
-      <StandardPrice currency="{$listing->marketplace->currency}">{$listing->marketplace_selling_price}</StandardPrice>
-    </Price>
-</Message>
-MESSAGE;
-        }, '');
-
-        $body = <<<FEED
-<?xml version="1.0" encoding="utf-8"?>
-  <AmazonEnvelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="amznenvelope.xsd">
-  <Header>
-    <DocumentVersion>1.01</DocumentVersion>
-    <MerchantIdentifier>M_SELLER_354577</MerchantIdentifier>
-  </Header>
-  
-  <MessageType>Price</MessageType> 
-
-  ${messages}
-</AmazonEnvelope>
-FEED;
-
-        // TODO: Throttle it.
-
-        $client = $this->getFeedClient();
-
-        $client->submitFeed([
-            'FeedType' => MwsFeedAndReportClientPack::FEED_TYPE_PAI_PRICING,
-            'FeedContent' => $body,
-            'MarketplaceIdList' => ['Id' => $this->credentials['MarketplaceId']],
-        ]);
-
-        // TODO: Ensure price is updated.
-    }
-
     /**
-     * @param string|array $ASINs
+     * Get price & meta from marketplace API.
+     *
+     * @param Collection|\App\MarketplaceListing[] $listings
      *
      * @return \App\Marketplace\ProductOffer[][]
      * @throws \App\Exceptions\ThrottleLimitReachedException
      */
-    public function getPrice($ASINs)
+    public function getOffers(Collection $listings)
     {
-        try {
-            $client = $this->getProductClient();
-            $request = [
-                'SellerId' => $this->credentials['SellerId'],
-                'MarketplaceId' => $this->credentials['MarketplaceId'],
-                'ItemCondition' => $this->credentials['ItemCondition'],
-                'ASINList' => ['ASIN' => $ASINs],
-            ];
-
-            $response = $this->toArray($client->getMyPriceForASIN($request)->toXML());
-
-            $result = [];
-
-            foreach ($this->getItemsFrom($response, 'GetMyPriceForASINResult') as $listing) {
-                if (!hash_equals('Success', data_get($listing, '@attributes.status'))) {
-                    continue;
-                }
-
-                $asin = data_get($listing, '@attributes.ASIN');
-                $result[$asin] = [];
-
-                foreach ($this->getItemsFrom($listing, 'Product.Offers.Offer') as $offer) {
-                    $is_fulfilled = data_get($offer, 'FulfillmentChannel') === 'AMAZON';
-                    $rating = -1;
-                    $reviews = -1;
-                    $price = floatval(data_get($offer, 'BuyingPrice.ListingPrice.Amount')) + floatval(data_get($offer,
-                            'BuyingPrice.Shipping.Amount'));
-                    $currency = data_get($offer, 'BuyingPrice.ListingPrice.CurrencyCode');
-                    $has_buy_box = null;
-
-                    $result[$asin][] = compact('is_fulfilled', 'reviews', 'rating', 'price', 'currency', 'has_buy_box');
-                }
-            }
-
-            if (count($request) === 0) {
-                return $result;
-            }
-
-            $ASINs = array_keys($result);
-
-            $request = [
-                'SellerId' => $this->credentials['SellerId'],
-                'MarketplaceId' => $this->credentials['MarketplaceId'],
-                'ItemCondition' => $this->credentials['ItemCondition'],
-                'ASINList' => ['ASIN' => $ASINs],
-            ];
-
-            $response = $this->toArray($client->getCompetitivePricingForASIN($request)->toXML());
-
-            foreach ($this->getItemsFrom($response, 'GetCompetitivePricingForASINResult') as $key => $listing) {
-                $status = (string)data_get($listing, '@attributes.status');
-
-                if (!hash_equals('Success', $status)) {
-                    continue;
-                }
-
-                $asin = data_get($listing, '@attributes.ASIN');
-                $is_me = filter_var(data_get($listing,
-                    'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.@attributes.belongsToRequester'),
-                    FILTER_VALIDATE_BOOLEAN);
-
-                // Can't figure out which offer has buy-box, so updating all offers.
-                foreach ($result[$asin] as $k => $temp) {
-                    $result[$asin][$k]['has_buy_box'] = $is_me;
-                }
-            }
-
-            return $result;
-        } catch (MarketplaceWebServiceProducts_Exception $e) {
-            throw new ThrottleLimitReachedException('Amazon MWS API limit reached.', 0, $e);
-        }
-    }
-
-    protected function getItemsFrom($source, $key)
-    {
-        if (data_get($source, $key) === null) {
-            return [];
-        }
-        if (data_get($source, $key.'.0') === null) {
-            return [data_get($source, $key)];
-        }
-
-        return data_get($source, $key);
-    }
-
-    /**
-     * Get price of given ASIN list.
-     *
-     * @param string|array $asin
-     *
-     * @return \App\Marketplace\ProductOffer[][]
-     * @throws \Exception
-     */
-    public function getOffers($asin)
-    {
+        $ASINs = $listings->pluck('uid')->toArray();
         $error = null;
         try {
             if ($this->canUsePricedOffersAPI()) {
                 $this->pricedOfferThrottle->hit();
-                return $this->getPriceWithPricedOffersAPI((array)$asin);
+
+                return $this->getPriceWithPricedOffersAPI((array)$ASINs);
             }
         } catch (MarketplaceWebServiceProducts_Exception $e) {
             Log::debug('getLowestPricedOffersForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
@@ -203,7 +71,8 @@ FEED;
         try {
             if ($this->canUseOfferListingAPI()) {
                 $this->offerListingThrottle->hit();
-                return $this->getPriceWithOfferListingAPI((array)$asin);
+
+                return $this->getPriceWithOfferListingAPI((array)$ASINs);
             }
         } catch (MarketplaceWebServiceProducts_Exception $e) {
             Log::debug('getLowestOfferListingsForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
@@ -211,6 +80,18 @@ FEED;
         }
 
         throw new ThrottleLimitReachedException('Amazon MWS API limit reached.', 0, $error);
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function canUsePricedOffersAPI(): bool
+    {
+        if ($this->pricedOfferThrottle === null) {
+            $this->pricedOfferThrottle = new ThrottleService($this->cacheKey('getLowestPricedOffersForASIN'), 10, 60);
+        }
+
+        return $this->pricedOfferThrottle->check();
     }
 
     public function getPriceWithPricedOffersAPI(array $ASINs)
@@ -255,6 +136,15 @@ FEED;
         }
 
         return $result;
+    }
+
+    protected function canUseOfferListingAPI(): bool
+    {
+        if ($this->offerListingThrottle === null) {
+            $this->offerListingThrottle = new ThrottleService($this->cacheKey('getLowestOfferListingsForASIN'), 3, 1);
+        }
+
+        return $this->offerListingThrottle->check();
     }
 
     public function getPriceWithOfferListingAPI(array $ASINs)
@@ -336,55 +226,98 @@ FEED;
         return $result;
     }
 
-    public function use (CompanyMarketplace $marketplace, array $credentials = []): MarketplaceDriverContract
-    {
-        $this->marketplace = $marketplace;
-        $this->credentials = $credentials = array_merge($this->credentials, $marketplace->credentials, $credentials);
-
-        return $this;
-    }
-
     protected function cacheKey(string $key): string
     {
         return '__MARKETPLACE__AMAZON_INDIA__'.$this->marketplace->getKey().'__'.$key;
     }
 
-    protected function canUseOfferListingAPI(): bool
-    {
-        if ($this->offerListingThrottle === null) {
-            $this->offerListingThrottle = new ThrottleService($this->cacheKey('getLowestOfferListingsForASIN'), 3, 1);
-        }
-
-        return $this->offerListingThrottle->check();
-    }
-
     /**
-     * @return mixed
+     * Get price & meta from marketplace API for owner's listing.
+     *
+     * @param Collection|\App\MarketplaceListing[] $listings
+     *
+     * @return \App\Marketplace\ProductOffer[][]
+     * @throws \App\Exceptions\ThrottleLimitReachedException
      */
-    protected function canUsePricedOffersAPI(): bool
+    public function getPrice(Collection $listings)
     {
-        if ($this->pricedOfferThrottle === null) {
-            $this->pricedOfferThrottle = new ThrottleService($this->cacheKey('getLowestPricedOffersForASIN'), 10, 60);
+        $ASINs = $listings->pluck('uid')->toArray();
+        $client = $this->getProductClient();
+        $request = [
+            'SellerId' => $this->credentials['SellerId'],
+            'MarketplaceId' => $this->credentials['MarketplaceId'],
+            'ItemCondition' => $this->credentials['ItemCondition'],
+            'ASINList' => ['ASIN' => $ASINs],
+        ];
+        $result = [];
+
+        try {
+            $response = $this->toArray($client->getMyPriceForASIN($request)->toXML());
+
+            foreach ($this->getItemsFrom($response, 'GetMyPriceForASINResult') as $listing) {
+                if (!hash_equals('Success', data_get($listing, '@attributes.status'))) {
+                    continue;
+                }
+
+                $asin = data_get($listing, '@attributes.ASIN');
+                $result[$asin] = [];
+
+                foreach ($this->getItemsFrom($listing, 'Product.Offers.Offer') as $offer) {
+                    $is_fulfilled = data_get($offer, 'FulfillmentChannel') === 'AMAZON';
+                    $rating = -1;
+                    $reviews = -1;
+                    $price = floatval(data_get($offer, 'BuyingPrice.ListingPrice.Amount')) + floatval(data_get($offer,
+                            'BuyingPrice.Shipping.Amount'));
+                    $currency = data_get($offer, 'BuyingPrice.ListingPrice.CurrencyCode');
+                    $has_buy_box = null;
+
+                    $result[$asin][] = compact('is_fulfilled', 'reviews', 'rating', 'price', 'currency', 'has_buy_box');
+                }
+            }
+
+            if (count($request) === 0) {
+                return $result;
+            }
+
+            $ASINs = array_keys($result);
+
+            $request = [
+                'SellerId' => $this->credentials['SellerId'],
+                'MarketplaceId' => $this->credentials['MarketplaceId'],
+                'ItemCondition' => $this->credentials['ItemCondition'],
+                'ASINList' => ['ASIN' => $ASINs],
+            ];
+
+            $response = $this->toArray($client->getCompetitivePricingForASIN($request)->toXML());
+
+            foreach ($this->getItemsFrom($response, 'GetCompetitivePricingForASINResult') as $key => $listing) {
+                $status = (string)data_get($listing, '@attributes.status');
+
+                if (!hash_equals('Success', $status)) {
+                    continue;
+                }
+
+                $asin = data_get($listing, '@attributes.ASIN');
+                $is_me = filter_var(data_get($listing,
+                    'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.@attributes.belongsToRequester'),
+                    FILTER_VALIDATE_BOOLEAN);
+
+                // Can't figure out which offer has buy-box, so updating all offers.
+                foreach ($result[$asin] as $k => $temp) {
+                    $result[$asin][$k]['has_buy_box'] = $is_me;
+                }
+            }
+
+            return $result;
+        } catch (MarketplaceWebServiceProducts_Exception $e) {
+            throw new ThrottleLimitReachedException('Amazon MWS API limit reached.', 0, $e);
         }
-
-        return $this->pricedOfferThrottle->check();
     }
-
 
     protected function getProductClient(): MwsProductClient
     {
         return new MwsProductClient(
             $this->credentials['AWSAccessKeyId'],
-            $this->credentials['SecretKey'],
-            $this->credentials['name'],
-            $this->credentials['version'],
-            ['ServiceURL' => $this->credentials['ServiceURL']]
-        );
-    }
-
-    protected function getFeedClient(): MwsFeedAndReportClient
-    {
-        return new MwsFeedAndReportClient($this->credentials['AWSAccessKeyId'],
             $this->credentials['SecretKey'],
             $this->credentials['name'],
             $this->credentials['version'],
@@ -407,5 +340,79 @@ FEED;
         $data = new SimpleXMLElement($dom->saveXML());
 
         return collect(json_decode(json_encode($data, true), true));
+    }
+
+    protected function getItemsFrom($source, $key)
+    {
+        if (data_get($source, $key) === null) {
+            return [];
+        }
+        if (data_get($source, $key.'.0') === null) {
+            return [data_get($source, $key)];
+        }
+
+        return data_get($source, $key);
+    }
+
+    /**
+     * @param \Illuminate\Support\Collection $listings
+     */
+    public function setPrice(Collection $listings)
+    {
+        $messages = $listings->reduce(function ($messages, MarketplaceListing $listing) {
+            return $messages.PHP_EOL.<<<MESSAGE
+<Message>
+    <MessageID>{$listing->getKey()}</MessageID> 
+    <Price>
+      <SKU>{$listing->companyProduct->sku}</SKU>
+      <StandardPrice currency="{$listing->marketplace->currency}">{$listing->marketplace_selling_price}</StandardPrice>
+    </Price>
+</Message>
+MESSAGE;
+        }, '');
+
+        $body = <<<FEED
+<?xml version="1.0" encoding="utf-8"?>
+  <AmazonEnvelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="amznenvelope.xsd">
+  <Header>
+    <DocumentVersion>1.01</DocumentVersion>
+    <MerchantIdentifier>M_SELLER_354577</MerchantIdentifier>
+  </Header>
+  
+  <MessageType>Price</MessageType> 
+
+  ${messages}
+</AmazonEnvelope>
+FEED;
+
+        // TODO: Throttle it.
+
+        $client = $this->getFeedClient();
+
+        $client->submitFeed([
+            'FeedType' => MwsFeedAndReportClientPack::FEED_TYPE_PAI_PRICING,
+            'FeedContent' => $body,
+            'MarketplaceIdList' => ['Id' => $this->credentials['MarketplaceId']],
+        ]);
+
+        // TODO: Ensure price is updated.
+    }
+
+    protected function getFeedClient(): MwsFeedAndReportClient
+    {
+        return new MwsFeedAndReportClient($this->credentials['AWSAccessKeyId'],
+            $this->credentials['SecretKey'],
+            $this->credentials['name'],
+            $this->credentials['version'],
+            ['ServiceURL' => $this->credentials['ServiceURL']]
+        );
+    }
+
+    public function use (CompanyMarketplace $marketplace, array $credentials = []): MarketplaceDriverContract
+    {
+        $this->marketplace = $marketplace;
+        $this->credentials = $credentials = array_merge($this->credentials, $marketplace->credentials, $credentials);
+
+        return $this;
     }
 }
