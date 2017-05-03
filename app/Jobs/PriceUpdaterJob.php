@@ -33,7 +33,6 @@ class PriceUpdaterJob extends SelfSchedulingJob
     {
         $this->company = $company;
         $this->marketplace = $marketplace;
-        $this->connection = 'exponent-update';
     }
 
     /**

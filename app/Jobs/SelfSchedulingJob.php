@@ -8,7 +8,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Log;
-use Queue;
 
 abstract class SelfSchedulingJob implements ShouldQueue
 {
@@ -73,10 +72,7 @@ abstract class SelfSchedulingJob implements ShouldQueue
     public function reschedule(int $seconds = 0)
     {
         $this->debug('Rescheduling', ['queue' => $this->queue]);
-
-        $job = new PriceWatcherJob($this->company, $this->marketplace);
-        $job->delay = $seconds;
-        dispatch($job);
+        dispatch(with(new PriceWatcherJob($this->company, $this->marketplace))->delay($seconds));
     }
 
     protected function debug(string $message, array $payload = [])
