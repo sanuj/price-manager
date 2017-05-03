@@ -7,6 +7,7 @@ use App\Exceptions\ThrottleLimitReachedException;
 use App\Managers\MarketplaceManager;
 use App\Marketplace;
 use App\MarketplaceListing;
+use App\Mongo\PriceHistory;
 use Illuminate\Database\Eloquent\Collection;
 use Log;
 
@@ -46,7 +47,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
         error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE); // NOTICE: MWS SDK has deprecated code.
         $this->manager = resolve(MarketplaceManager::class);
 
-        $this->debug('Starting repricer for '.$this->company->name);
+        $this->debug('Running for company '.$this->company->name.'.');
 
         try {
             MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
