@@ -14,7 +14,6 @@ class AddColumnsToMarketplaceListingsTable extends Migration
     public function up()
     {
         Schema::table('marketplace_listings', function (Blueprint $table) {
-            $table->dropColumn('sku');
             $table->json('repricing_algorithm')->nullable();
         });
     }
