@@ -51,26 +51,19 @@ class StartRepricingService extends Command
         $this->call('repricer:stop');
         $this->line('Starting exponent price watcher & updater.');
         Company::chunk(50, function (Collection $companies) {
-            $jobs = $companies->reduce(function ($jobs, Company $company) {
-                return array_merge($jobs,
-                    $company->marketplaces->map(function (Marketplace $marketplace) use ($company) {
-                        $job = new PriceWatcherJob($company, $marketplace);
-                        $job->onConnection($this->connectionName);
-                        $job->onQueue('exponent-watch');
+            $companies->each(function (Company $company) {
+                $company->marketplaces->each(function (Marketplace $marketplace) use ($company) {
+                    $watcher = new PriceWatcherJob($company, $marketplace);
+                    $watcher->onConnection($this->connectionName);
+                    $watcher->onQueue('exponent-watch');
+                    Queue::connection($watcher->connection)->pushOn($watcher->queue, $watcher);
 
-                        return $job;
-                    })->toArray(),
-                    $company->marketplaces->map(function (Marketplace $marketplace) use ($company) {
-                        $job = new PriceUpdaterJob($company, $marketplace);
-                        $job->onConnection($this->connectionName);
-                        $job->onQueue('exponent-update');
-
-                        return $job;
-                    })->toArray()
-                );
-            }, []);
-
-            Queue::connection($this->connectionName)->bulk($jobs);
+                    $updater = new PriceUpdaterJob($company, $marketplace);
+                    $updater->onConnection($this->connectionName);
+                    $updater->onQueue('exponent-update');
+                    Queue::connection($updater->connection)->pushOn($updater->queue, $updater);
+                });
+            });
         });
     }
 }
