@@ -13,6 +13,8 @@ use Log;
 
 class PriceWatcherJob extends SelfSchedulingJob
 {
+    public $queue = 'exponent-watch';
+
     /**
      * Create a new job instance.
      *
@@ -23,8 +25,6 @@ class PriceWatcherJob extends SelfSchedulingJob
     {
         $this->company = $company;
         $this->marketplace = $marketplace;
-        $this->queue = 'exponent-watch';
-        $this->connection = null;
     }
 
     /**
