@@ -9,7 +9,6 @@ use App\Marketplace;
 use App\MarketplaceListing;
 use App\Mongo\Snapshot;
 use Carbon\Carbon;
-use Log;
 
 class PriceWatcherJob extends SelfSchedulingJob
 {
@@ -48,8 +47,6 @@ class PriceWatcherJob extends SelfSchedulingJob
             return;
         }
 
-        $this->debug($listings->count().' product listings');
-
         $api = $this->manager->driver($this->marketplace->name);
         $api->use($this->company->credentialsFor($this->marketplace));
 
@@ -80,12 +77,16 @@ class PriceWatcherJob extends SelfSchedulingJob
      */
     protected function getRequiredListings(): \Illuminate\Support\Collection
     {
-        return MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
-                                 ->whereCompanyId($this->company->getKey())
-                                 ->where('updated_at', '<', Carbon::now()->addMinutes(-$this->getFrequency()))
-                                 ->orderBy('updated_at', 'asc')
-                                 ->take($this->getPerRequestCount())
-                                 ->get();
+        $query = MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
+                                   ->whereCompanyId($this->company->getKey())
+                                   ->where('updated_at', '<', Carbon::now()->addMinutes(-$this->getFrequency()))
+                                   ->orderBy('updated_at', 'asc');
+
+        $total = $query->count();
+        $listings = $query->take($this->getPerRequestCount())->get();
+        $this->debug('Processing '.$listings->count()."/${total} product listings.");
+
+        return $listings;
     }
 
     protected function noListingsLeft()
@@ -116,6 +117,12 @@ class PriceWatcherJob extends SelfSchedulingJob
      */
     protected function recordPriceSnapshot(MarketplaceListing $listing, $offers, $competitors)
     {
+        if (!isset($competitors[$listing->uid]) and !isset($offers[$listing->uid])) {
+            $this->debug('Missing Snapshot', ['listing_id' => $listing->getKey(), 'uid' => $listing->uid]);
+
+            return; // Not loaded from marketplace, should retry.
+        }
+
         $snapshot = new Snapshot([
             'repricer_listing_id' => $listing->getKey(),
             'uid' => $listing->uid,
@@ -129,13 +136,8 @@ class PriceWatcherJob extends SelfSchedulingJob
 
         if (app()->environment('testing')) {
             $listing->touch();
-
-            return;
-        }
-
-        if (!$snapshot->save()) {
-            Log::error('Failed to store listing in mongodb.', $snapshot->toArray());
-            $this->debug('Failed to store listing in mongodb.');
+        } elseif (!$snapshot->save()) {
+            $this->debug('Failed to store listing in mongodb.', $snapshot->toArray());
         } else {
             $listing->touch();
         }
