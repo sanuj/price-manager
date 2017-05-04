@@ -7,13 +7,11 @@ use App\Contracts\MarketplaceDriverContract;
 use App\Exceptions\ThrottleLimitReachedException;
 use App\Marketplace\ProductOffer;
 use App\MarketplaceListing;
-use App\Services\ThrottleService;
 use CaponicaAmazonMwsComplete\AmazonClient\MwsFeedAndReportClient;
 use CaponicaAmazonMwsComplete\AmazonClient\MwsProductClient;
 use CaponicaAmazonMwsComplete\ClientPack\MwsFeedAndReportClientPack;
 use DOMDocument;
 use Illuminate\Support\Collection;
-use Log;
 use MarketplaceWebServiceProducts_Exception;
 use SimpleXMLElement;
 
@@ -56,42 +54,20 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     public function getOffers(Collection $listings)
     {
         $ASINs = $listings->pluck('uid')->toArray();
-        $error = null;
-        try {
-            if ($this->canUsePricedOffersAPI()) {
-                $this->pricedOfferThrottle->hit();
 
-                return $this->getPriceWithPricedOffersAPI((array)$ASINs);
-            }
+        try {
+            return $this->getPriceWithPricedOffersAPI((array)$ASINs);
         } catch (MarketplaceWebServiceProducts_Exception $e) {
-            Log::debug('getLowestPricedOffersForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
-            $error = $e;
+
         }
 
         try {
-            if ($this->canUseOfferListingAPI()) {
-                $this->offerListingThrottle->hit();
-
-                return $this->getPriceWithOfferListingAPI((array)$ASINs);
-            }
+            return $this->getPriceWithOfferListingAPI((array)$ASINs);
         } catch (MarketplaceWebServiceProducts_Exception $e) {
-            Log::debug('getLowestOfferListingsForASIN: Limit Reached. '.$this->pricedOfferThrottle->count().'/'.$this->pricedOfferThrottle->getLimit());
-            $error = $e;
+
         }
 
-        throw new ThrottleLimitReachedException('Amazon MWS API limit reached.', 0, $error);
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function canUsePricedOffersAPI(): bool
-    {
-        if ($this->pricedOfferThrottle === null) {
-            $this->pricedOfferThrottle = new ThrottleService($this->cacheKey('getLowestPricedOffersForASIN'), 10, 60);
-        }
-
-        return $this->pricedOfferThrottle->check();
+        throw new ThrottleLimitReachedException('Amazon MWS API limit reached.');
     }
 
     public function getPriceWithPricedOffersAPI(array $ASINs)
@@ -136,15 +112,6 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         }
 
         return $result;
-    }
-
-    protected function canUseOfferListingAPI(): bool
-    {
-        if ($this->offerListingThrottle === null) {
-            $this->offerListingThrottle = new ThrottleService($this->cacheKey('getLowestOfferListingsForASIN'), 3, 1);
-        }
-
-        return $this->offerListingThrottle->check();
     }
 
     public function getPriceWithOfferListingAPI(array $ASINs)
@@ -226,9 +193,44 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         return $result;
     }
 
-    protected function cacheKey(string $key): string
+    protected function getProductClient(): MwsProductClient
     {
-        return '__MARKETPLACE__AMAZON_INDIA__'.$this->marketplace->getKey().'__'.$key;
+        return new MwsProductClient(
+            $this->credentials['AWSAccessKeyId'],
+            $this->credentials['SecretKey'],
+            $this->credentials['name'],
+            $this->credentials['version'],
+            ['ServiceURL' => $this->credentials['ServiceURL']]
+        );
+    }
+
+    /**
+     * @param string $xml
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    protected function toArray($xml)
+    {
+        $dom = new DOMDocument();
+        $dom->loadXML($xml);
+        $dom->preserveWhiteSpace = true;
+        $dom->formatOutput = true;
+
+        $data = new SimpleXMLElement($dom->saveXML());
+
+        return collect(json_decode(json_encode($data, true), true));
+    }
+
+    protected function getItemsFrom($source, $key)
+    {
+        if (data_get($source, $key) === null) {
+            return [];
+        }
+        if (data_get($source, $key.'.0') === null) {
+            return [data_get($source, $key)];
+        }
+
+        return data_get($source, $key);
     }
 
     /**
@@ -312,46 +314,6 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         } catch (MarketplaceWebServiceProducts_Exception $e) {
             throw new ThrottleLimitReachedException('Amazon MWS API limit reached.', 0, $e);
         }
-    }
-
-    protected function getProductClient(): MwsProductClient
-    {
-        return new MwsProductClient(
-            $this->credentials['AWSAccessKeyId'],
-            $this->credentials['SecretKey'],
-            $this->credentials['name'],
-            $this->credentials['version'],
-            ['ServiceURL' => $this->credentials['ServiceURL']]
-        );
-    }
-
-    /**
-     * @param string $xml
-     *
-     * @return \Illuminate\Support\Collection
-     */
-    protected function toArray($xml)
-    {
-        $dom = new DOMDocument();
-        $dom->loadXML($xml);
-        $dom->preserveWhiteSpace = true;
-        $dom->formatOutput = true;
-
-        $data = new SimpleXMLElement($dom->saveXML());
-
-        return collect(json_decode(json_encode($data, true), true));
-    }
-
-    protected function getItemsFrom($source, $key)
-    {
-        if (data_get($source, $key) === null) {
-            return [];
-        }
-        if (data_get($source, $key.'.0') === null) {
-            return [data_get($source, $key)];
-        }
-
-        return data_get($source, $key);
     }
 
     /**
