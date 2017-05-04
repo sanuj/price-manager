@@ -2,6 +2,7 @@
 
 namespace App\Concerns;
 
+use App;
 use App\Revision;
 use Auth;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +24,7 @@ trait Revisionable
         static::updated(function (Model $model) {
             $user = Auth::user();
 
-            if (!$user) {
+            if (!$user && !App::runningInConsole()) {
                 Log::warning('Unauthenticated user changed a revisionable model: '
                              .$model->getKey().', '.$model->getMorphClass());
             }
