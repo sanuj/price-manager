@@ -90,15 +90,17 @@ class PriceWatcherJob extends SelfSchedulingJob
 
     protected function noListingsLeft()
     {
-        $this->debug('No tasks left. Rescheduling after '.$this->getFrequency().' minutes.');
         $listing = MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
                                      ->whereCompanyId($this->company->getKey())
                                      ->orderBy('updated_at', 'asc')->first();
 
         if ($listing) {
             $sinceLast = abs(Carbon::now()->diffInMinutes($listing->updated_at));
-            $this->reschedule(60 * min(15, max(0, 15 - $sinceLast)));
+            $minutes = min($this->getFrequency(), max(0, $this->getFrequency() - $sinceLast));
+            $this->debug('No tasks left. Rescheduling after '.$minutes.' minutes.');
+            $this->reschedule(60 * $minutes);
         } else {
+            $this->debug('No tasks left. Rescheduling after '.$this->getFrequency().' minutes.');
             $this->reschedule(60 * $this->getFrequency());
         }
     }
