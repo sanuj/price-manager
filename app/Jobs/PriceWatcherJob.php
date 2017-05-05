@@ -124,7 +124,7 @@ class PriceWatcherJob extends SelfSchedulingJob
         }
 
         $snapshot = new Snapshot([
-            'repricer_listing_id' => $listing->getKey(),
+            'marketplace_listing_id' => $listing->getKey(),
             'uid' => $listing->uid,
             'marketplace' => $this->marketplace->name,
             'offers' => $offers[$listing->uid] ?? [],
