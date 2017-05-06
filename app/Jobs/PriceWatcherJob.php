@@ -56,6 +56,7 @@ class PriceWatcherJob extends SelfSchedulingJob
 
             foreach ($listings as $listing) {
                 $this->recordPriceSnapshot($listing, $offers, $competitors);
+                $this->updateMarketplaceListing($listing, $offers);
             }
         } catch (ThrottleLimitReachedException $e) {
             $this->debug('Rescheduling, throttle limit reached.');
@@ -140,6 +141,15 @@ class PriceWatcherJob extends SelfSchedulingJob
             $this->debug('Failed to store listing in mongodb.', $snapshot->toArray());
         } else {
             $listing->touch();
+        }
+    }
+
+    protected function updateMarketplaceListing(MarketplaceListing $listing, $offers) {
+        if(count($offers) === 0) return;
+        $offer = $offers[0];
+        if($listing->marketplace_selling_price != $offer->price) {
+            $listing->marketplace_selling_price = $offer->price;
+            $listing->save();
         }
     }
 }
