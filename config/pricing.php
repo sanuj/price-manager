@@ -3,6 +3,7 @@
 
     'algorithms' => [
         \App\Pricing\Algorithms\UserDefinedPrice::class,
+        \App\Pricing\Algorithms\LinearCombinationScoreHeuristicPrice::class,
     ],
 
     'default_selector' => 'uniform_random',
