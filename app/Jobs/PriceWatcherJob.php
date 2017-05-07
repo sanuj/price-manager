@@ -147,9 +147,13 @@ class PriceWatcherJob extends SelfSchedulingJob
     protected function updateMarketplaceListing(MarketplaceListing $listing, $offers) {
         if(count($offers) === 0) return;
         $offer = $offers[0];
-        if(is_float($offer->price) && abs($listing->marketplace_selling_price - $offer->price) > 0.01) {
+        if(is_float($offer->price) && !$this->isPriceEqual($listing->marketplace_selling_price, $offer->price) ) {
             $listing->marketplace_selling_price = $offer->price;
             $listing->save();
         }
+    }
+
+    protected function isPriceEqual($price_one, $price_two) {
+        return abs($price_one - $price_two) < 0.01;
     }
 }
