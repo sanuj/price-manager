@@ -9,7 +9,6 @@ use App\Marketplace;
 use App\MarketplaceListing;
 use App\Mongo\PriceHistory;
 use Illuminate\Database\Eloquent\Collection;
-use Log;
 
 class PriceUpdaterJob extends SelfSchedulingJob
 {
@@ -52,6 +51,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
         try {
             MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
                               ->whereCompanyId($this->company->getKey())
+                              ->where('status', '<>', MarketplaceListing::STATUS_INACTIVE)
                               ->chunk($this->getPerRequestCount(), function ($listings) {
                                   $this->updatePrice($listings);
                               });
@@ -89,7 +89,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
 
         /** @var MarketplaceListing $listing */
         foreach ($listings as $listing) {
-            Log::debug("\tUpdate ({$listing->uid}): {$listing->getOriginal('marketplace_selling_price')} -> {$listings->marketplace_selling_price}");
+            $this->debug("\tUpdate ({$listing->uid}): {$listing->getOriginal('marketplace_selling_price')} -> {$listings->marketplace_selling_price}");
         }
 
         if (config('pricing.should_update')) {
