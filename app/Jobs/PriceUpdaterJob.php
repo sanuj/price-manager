@@ -52,6 +52,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
         try {
             MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
                               ->whereCompanyId($this->company->getKey())
+                              ->where('status', '<>', MarketplaceListing::INACTIVE)
                               ->chunk($this->getPerRequestCount(), function ($listings) {
                                   $this->updatePrice($listings);
                               });

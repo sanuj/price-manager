@@ -8,6 +8,8 @@ class MarketplaceListing extends Model
 {
     use Concerns\Revisionable;
 
+    const INACTIVE = 0;
+
     protected $fillable = [
         'selling_price',
         'cost_price',
