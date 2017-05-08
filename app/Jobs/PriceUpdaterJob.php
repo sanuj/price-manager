@@ -89,7 +89,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
 
         /** @var MarketplaceListing $listing */
         foreach ($listings as $listing) {
-            Log::debug("\tUpdate ({$listing->uid}): {$listing->getOriginal('marketplace_selling_price')} -> {$listings->marketplace_selling_price}");
+            $this->debug("\tUpdate ({$listing->uid}): {$listing->getOriginal('marketplace_selling_price')} -> {$listings->marketplace_selling_price}");
         }
 
         if (config('pricing.should_update')) {
