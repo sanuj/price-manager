@@ -25,8 +25,6 @@ class AddActiveToMarketplaceListingsTable extends Migration
      */
     public function down()
     {
-        Schema::table('marketplace_listings', function (Blueprint $table) {
-            $table->dropColumn('status');
-        });
+        //
     }
 }
