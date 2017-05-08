@@ -128,7 +128,6 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         $request = [
             'SellerId' => $this->credentials['SellerId'],
             'MarketplaceId' => $this->credentials['MarketplaceId'],
-            'ItemCondition' => $this->credentials['ItemCondition'],
             'ASINList' => ['ASIN' => $ASINs],
         ];
 
