@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "e4b1ed5ebfc5c87584af36c312add480",
-    "content-hash": "3ca363e37f6ac10288441d9582510408",
+    "hash": "0b778d0fe6885c305affce83c0acc052",
+    "content-hash": "36e832af22ad732870ae7af61ddf15b4",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -1546,6 +1546,211 @@
                 "uuid"
             ],
             "time": "2017-03-26 20:37:53"
+        },
+        {
+            "name": "spatie/blink",
+            "version": "1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/blink.git",
+                "reference": "a72f9f85c7e1b90b7ac1b5186913e7c57f1632ef"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/blink/zipball/a72f9f85c7e1b90b7ac1b5186913e7c57f1632ef",
+                "reference": "a72f9f85c7e1b90b7ac1b5186913e7c57f1632ef",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^6.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\Blink\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Cache that expires in the blink of an eye",
+            "homepage": "https://github.com/spatie/blink",
+            "keywords": [
+                "Blink",
+                "cache",
+                "caching",
+                "spatie"
+            ],
+            "time": "2017-03-17 16:18:15"
+        },
+        {
+            "name": "spatie/laravel-blink",
+            "version": "1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-blink.git",
+                "reference": "fc8b5a599c6a8e9d54851e513229a34d6e5187c4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-blink/zipball/fc8b5a599c6a8e9d54851e513229a34d6e5187c4",
+                "reference": "fc8b5a599c6a8e9d54851e513229a34d6e5187c4",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^5.4",
+                "php": "^7.0",
+                "spatie/blink": "^1.0"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^3.4.6",
+                "phpunit/phpunit": "^6.0.9"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\LaravelBlink\\": "src"
+                },
+                "files": [
+                    "src/helpers.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Cache that expires in the blink of an eye",
+            "homepage": "https://github.com/spatie/laravel-blink",
+            "keywords": [
+                "laravel-blink",
+                "spatie"
+            ],
+            "time": "2017-04-20 09:58:21"
+        },
+        {
+            "name": "spatie/laravel-server-monitor",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-server-monitor.git",
+                "reference": "b26125eda767d817afa53909552b415a6ace2772"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-server-monitor/zipball/b26125eda767d817afa53909552b415a6ace2772",
+                "reference": "b26125eda767d817afa53909552b415a6ace2772",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^6.2",
+                "illuminate/console": "^5.4",
+                "illuminate/database": "^5.4",
+                "illuminate/events": "^5.4",
+                "illuminate/support": "^5.4",
+                "php": "^7.1",
+                "spatie/laravel-blink": "^1.0",
+                "spatie/regex": "^1.1",
+                "symfony/process": "^3.2"
+            },
+            "require-dev": {
+                "mockery/mockery": "^0.9.8",
+                "orchestra/testbench": "^3.4.5",
+                "phpunit/phpunit": "^5.7"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\ServerMonitor\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Monitor servers",
+            "homepage": "https://github.com/spatie/laravel-server-monitor",
+            "keywords": [
+                "laravel-server-monitor",
+                "spatie"
+            ],
+            "time": "2017-05-01 19:36:14"
+        },
+        {
+            "name": "spatie/regex",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/regex.git",
+                "reference": "e62f3628d49e18d80ead79663b5e4b60baba105c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/regex/zipball/e62f3628d49e18d80ead79663b5e4b60baba105c",
+                "reference": "e62f3628d49e18d80ead79663b5e4b60baba105c",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "5.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\Regex\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Sebastian De Deyne",
+                    "email": "sebastian@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A sane interface for php's built in preg_* functions",
+            "homepage": "https://github.com/spatie/regex",
+            "keywords": [
+                "expression",
+                "expressions",
+                "regex",
+                "regular",
+                "spatie"
+            ],
+            "time": "2016-09-15 14:29:02"
         },
         {
             "name": "swiftmailer/swiftmailer",
