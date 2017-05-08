@@ -12,6 +12,7 @@ use CaponicaAmazonMwsComplete\AmazonClient\MwsProductClient;
 use CaponicaAmazonMwsComplete\ClientPack\MwsFeedAndReportClientPack;
 use DOMDocument;
 use Illuminate\Support\Collection;
+use Log;
 use MarketplaceWebServiceProducts_Exception;
 use SimpleXMLElement;
 
@@ -89,12 +90,18 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
             $status = data_get($response, 'GetLowestPricedOffersForASINResult.@attributes.status');
 
             if (!hash_equals('Success', $status)) {
+                $this->debug("getLowestPricedOffersForASIN(${asin}) failed.", (array)$response);
+
                 continue;
             }
 
             $result[$asin] = [];
 
-            $offers = (array)data_get($response, 'GetLowestPricedOffersForASINResult.Offers.Offer');
+            $offers = (array)$this->getItemsFrom($response, 'GetLowestPricedOffersForASINResult.Offers.Offer');
+
+            if (!count($offers)) {
+                $this->debug("getLowestPricedOffersForASIN(${asin}) 0 offers.", (array)$response);
+            }
 
             foreach ($offers as $offer) {
                 $is_fulfilled = filter_var(data_get($offer, 'IsFulfilledByAmazon'), FILTER_VALIDATE_BOOLEAN);
@@ -133,16 +140,21 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
 
         foreach ($listings as $listing) {
             $status = data_get($listing, '@attributes.status');
+            $asin = data_get($listing, '@attributes.ASIN');
 
             if (!hash_equals('Success', $status)) {
+                $this->debug("getLowestOfferListingForASIN(${asin}) failed.", (array)$listing);
+
                 continue;
             }
-
-            $asin = data_get($listing, '@attributes.ASIN');
 
             $result[$asin] = [];
 
             $offers = $this->getItemsFrom($listing, 'Product.LowestOfferListings.LowestOfferListing');
+
+            if (!count($offers)) {
+                $this->debug("getLowestOfferListingForASIN(${asin}) 0 offers.", (array)$listing);
+            }
 
             foreach ($offers as $offer) {
                 $is_fulfilled = data_get($offer, 'Qualifiers.FulfillmentChannel') === 'Amazon';
@@ -172,19 +184,21 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
 
         foreach ($this->getItemsFrom($response, 'GetCompetitivePricingForASINResult') as $listing) {
             $status = data_get($listing, '@attributes.status');
+            $asin = data_get($listing, '@attributes.ASIN');
 
             if (!hash_equals('Success', $status)) {
+                $this->debug("getCompetitivePricingForASIN(${asin}) failed.", (array)$listing);
+
                 continue;
             }
 
-            $asin = data_get($listing, '@attributes.ASIN');
             $price = floatval(data_get($listing,
                     'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.Price.ListingPrice.Amount'))
                      + floatval(data_get($listing,
                     'Product.CompetitivePricing.CompetitivePrices.CompetitivePrice.Price.Shipping.Amount'));
 
             foreach ($result[$asin] as $offer) {
-                if ($offer['price'] <= $price) {
+                if ($offer['price'] <= $price) { // TODO: Improve this. Competitor matching.
                     $offer['has_buy_box'] = true;
                 }
             }
@@ -202,6 +216,11 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
             $this->credentials['version'],
             ['ServiceURL' => $this->credentials['ServiceURL']]
         );
+    }
+
+    protected function debug(string $message, array $extras = [])
+    {
+        Log::debug("AmazonIndia: ${message}", $extras);
     }
 
     /**
