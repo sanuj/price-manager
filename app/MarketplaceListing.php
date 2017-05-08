@@ -17,6 +17,7 @@ class MarketplaceListing extends Model
         'sku',
         'url',
         'ref_num',
+        'status',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class MarketplaceListing extends Model
 
         'company_product_id' => 'int',
         'repricing_algorithm' => 'array',
+        'status' => 'int',
     ];
 
     public function marketplace()
