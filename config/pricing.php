@@ -10,5 +10,6 @@
 
     'selectors' => [
         'uniform_random' => \App\Pricing\Selectors\RandomPricingAlgorithmSelector::class,
+        'marketplace_listing' => \App\Pricing\Selectors\MarketplaceListingPricingAlgorithmSelector::class
     ],
 ];
