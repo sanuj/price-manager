@@ -11,7 +11,7 @@ use App\MarketplaceListing;
 use App\Mongo\Snapshot;
 use Carbon\Carbon;
 
-class LinearCombinationScoreHeuristicPrice implements PricingAlgorithmContract
+class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
 {
 
     public function predict(MarketplaceListing $listing): float
