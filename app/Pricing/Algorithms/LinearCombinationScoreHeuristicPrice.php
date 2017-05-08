@@ -4,6 +4,7 @@ namespace App\Pricing\Algorithms;
 
 use App\Contracts\PricingAlgorithmContract;
 use App\Exceptions\InvalidMinPriceException;
+use App\Exceptions\InvalidMaxPriceException;
 use App\Exceptions\NoSnapshotsAvailableException;
 use App\Exceptions\NoSnapshotsWithOffersException;
 use App\MarketplaceListing;
@@ -17,6 +18,9 @@ class LinearCombinationScoreHeuristicPrice implements PricingAlgorithmContract
     {
         if($listing->min_price == 0)
             throw new InvalidMinPriceException($listing);
+
+        if($listing->max_price == 0 or $listing->max_price < $listing->min_price)
+            throw new InvalidMaxPriceException($listing);
 
         $buy_box_share = $this->getBuyBoxShare($listing->id);
 
