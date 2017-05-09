@@ -145,10 +145,16 @@ class PriceWatcherJob extends SelfSchedulingJob
     }
 
     protected function updateMarketplaceListing(MarketplaceListing $listing, $offers) {
+        if(array_key_exists($listing->uid, $offers))
+            $offers = $offers[$listing->uid];
+        else
+            return;
+
         if(count($offers) === 0) return;
         $offer = $offers[0];
-        if(is_float($offer->price) && !$this->isPriceEqual($listing->marketplace_selling_price, $offer->price) ) {
-            $listing->marketplace_selling_price = $offer->price;
+
+        if(is_numeric($offer['price']) && !$this->isPriceEqual($listing->marketplace_selling_price, $offer['price']) ) {
+            $listing->marketplace_selling_price = $offer['price'];
             $listing->save();
         }
     }
