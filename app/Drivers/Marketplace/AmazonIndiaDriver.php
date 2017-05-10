@@ -220,8 +220,6 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     protected function debug(string $message, array $extras = [])
     {
         Log::debug("AmazonIndia: ${message}", $extras);
-
-        dump($message, $extras);
     }
 
     /**
@@ -393,15 +391,7 @@ FEED;
             'ContentMd5' => $hash,
         ];
 
-//        require_once(__DIR__.'/../../../vendor/caponica/amazon-mws-complete/src/AmazonPhpClientLibrary/MarketplaceWebService/Model/SubmitFeedRequest.php');
-//
-//        $request = new \MarketplaceWebService_Model_SubmitFeedRequest();
-//        $request->setContentMd5($hash);
-//        $request->setFeedContent($stream);
-//        $request->setFeedType(MwsFeedAndReportClientPack::FEED_TYPE_PAI_PRICING);
-//        $request->setMerchant($this->credentials['SellerId']);
-
-        $response = $this->toArray($client->submitFeed($request)->toXML());
+        $response = $client->submitFeed($request);
 
         fclose($stream);
 
