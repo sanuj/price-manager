@@ -12,7 +12,7 @@ machine:
 dependencies:
   pre:
     - echo "memory_limit = 2048M" > /opt/circleci/php/$(phpenv global)/etc/conf.d/memory.ini
-    - sudo apt install php7.1-mongodb
+    - sudo apt-get update; sudo apt-get install php-mongodb
     - type -P yarn &> /dev/null || curl -o- -s -L https://yarnpkg.com/install.sh | bash
   override:
     - composer install --dev --no-interaction --no-progress --ignore-platform-reqs
