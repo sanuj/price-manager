@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Company;
+use App\Exceptions\NoSnapshotsAvailableException;
 use App\Exceptions\ThrottleLimitReachedException;
 use App\Managers\MarketplaceManager;
 use App\Marketplace;
@@ -43,6 +44,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
      */
     public function handle()
     {
+
         error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE); // NOTICE: MWS SDK has deprecated code.
         $this->manager = resolve(MarketplaceManager::class);
 
@@ -55,6 +57,15 @@ class PriceUpdaterJob extends SelfSchedulingJob
                               ->chunk($this->getPerRequestCount(), function ($listings) {
                                   $this->updatePrice($listings);
                               });
+        } catch(NoSnapshotsAvailableException $e) {
+            $this->debug('NoSnapshotsAvailableException message: ' . $e->getMessage());
+            if($e->getListingId()) {
+                MarketplaceListing::whereId($e->getListingId())
+                    ->update(['status' => 0]);
+                $this->debug('Updated status = 0 of marketplace listing id = ' . $e->getListingId());
+            }
+            $this->reschedule();
+            return;
         } catch (ThrottleLimitReachedException $e) {
             $this->debug('Rescheduling, throttle limit reached.');
             $this->reschedule(60);
