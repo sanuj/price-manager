@@ -220,6 +220,8 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
     protected function debug(string $message, array $extras = [])
     {
         Log::debug("AmazonIndia: ${message}", $extras);
+
+        dump($message, $extras);
     }
 
     /**
@@ -266,7 +268,6 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
         $request = [
             'SellerId' => $this->credentials['SellerId'],
             'MarketplaceId' => $this->credentials['MarketplaceId'],
-            'ItemCondition' => $this->credentials['ItemCondition'],
             'ASINList' => ['ASIN' => $ASINs],
         ];
         $result = [];
@@ -275,14 +276,21 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
             $response = $this->toArray($client->getMyPriceForASIN($request)->toXML());
 
             foreach ($this->getItemsFrom($response, 'GetMyPriceForASINResult') as $listing) {
+                $asin = data_get($listing, '@attributes.ASIN');
                 if (!hash_equals('Success', data_get($listing, '@attributes.status'))) {
+                    $this->debug("getMyPriceForASINResult(${asin}) failed.", (array)$listing);
+
                     continue;
                 }
-
-                $asin = data_get($listing, '@attributes.ASIN');
                 $result[$asin] = [];
 
-                foreach ($this->getItemsFrom($listing, 'Product.Offers.Offer') as $offer) {
+                $offers = $this->getItemsFrom($listing, 'Product.Offers.Offer');
+
+                if (!count($offers)) {
+                    $this->debug("getMyPriceForASINResult(${asin}) 0 offers.", (array)$listing);
+                }
+
+                foreach ($offers as $offer) {
                     $is_fulfilled = data_get($offer, 'FulfillmentChannel') === 'AMAZON';
                     $rating = -1;
                     $reviews = -1;
@@ -351,7 +359,7 @@ class AmazonIndiaDriver implements MarketplaceDriverContract
 MESSAGE;
         }, '');
 
-        $body = <<<FEED
+        $feed = <<<FEED
 <?xml version="1.0" encoding="utf-8"?>
   <AmazonEnvelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="amznenvelope.xsd">
   <Header>
@@ -369,22 +377,53 @@ FEED;
 
         $client = $this->getFeedClient();
 
-        $client->submitFeed([
-            'FeedType' => MwsFeedAndReportClientPack::FEED_TYPE_PAI_PRICING,
-            'FeedContent' => $body,
-            'MarketplaceIdList' => ['Id' => $this->credentials['MarketplaceId']],
-        ]);
+        $stream = fopen('php://temp', 'rw+');
+        fwrite($stream, $feed);
+        rewind($stream);
 
+        $feed = trim($feed);
+
+        $hash = base64_encode(md5($feed, true));
+        rewind($stream);
+
+        $request = [
+            'Merchant' => $this->credentials['SellerId'],
+            'FeedType' => MwsFeedAndReportClientPack::FEED_TYPE_PAI_PRICING,
+            'FeedContent' => $stream,
+            'ContentMd5' => $hash,
+        ];
+
+//        require_once(__DIR__.'/../../../vendor/caponica/amazon-mws-complete/src/AmazonPhpClientLibrary/MarketplaceWebService/Model/SubmitFeedRequest.php');
+//
+//        $request = new \MarketplaceWebService_Model_SubmitFeedRequest();
+//        $request->setContentMd5($hash);
+//        $request->setFeedContent($stream);
+//        $request->setFeedType(MwsFeedAndReportClientPack::FEED_TYPE_PAI_PRICING);
+//        $request->setMerchant($this->credentials['SellerId']);
+
+        $response = $this->toArray($client->submitFeed($request)->toXML());
+
+        fclose($stream);
+
+        $this->debug('Do something with setPrice() response.', (array)$response);
         // TODO: Ensure price is updated.
     }
 
     protected function getFeedClient(): MwsFeedAndReportClient
     {
-        return new MwsFeedAndReportClient($this->credentials['AWSAccessKeyId'],
+        return new MwsFeedAndReportClient(
+            $this->credentials['AWSAccessKeyId'],
             $this->credentials['SecretKey'],
+            [
+                'ServiceURL' => $this->credentials['FeedServiceURL'],
+                'ProxyHost' => null,
+                'ProxyPort' => -1,
+                'ProxyUsername' => null,
+                'ProxyPassword' => null,
+                'MaxErrorRetry' => 3,
+            ],
             $this->credentials['name'],
-            $this->credentials['version'],
-            ['ServiceURL' => $this->credentials['ServiceURL']]
+            $this->credentials['version']
         );
     }
 
