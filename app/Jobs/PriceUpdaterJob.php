@@ -45,7 +45,6 @@ class PriceUpdaterJob extends SelfSchedulingJob
     public function handle()
     {
 
-        error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE); // NOTICE: MWS SDK has deprecated code.
         $this->manager = resolve(MarketplaceManager::class);
 
         $this->debug('Running for company '.$this->company->name.'.');
