@@ -80,7 +80,7 @@ class AppServiceProvider extends ServiceProvider
         }
     }
 
-    protected function configureProductionEnv(): void
+    protected function configureProductionEnv()
     {
         if ($this->app->environment('production')) {
             foreach ($this->productionServiceProviders as $provider) {
@@ -89,7 +89,7 @@ class AppServiceProvider extends ServiceProvider
         }
     }
 
-    protected function registerMarketplaceManager(): void
+    protected function registerMarketplaceManager()
     {
         $this->app->singleton(MarketplaceManager::class, function () {
             return new MarketplaceManager($this->app);
