@@ -24,7 +24,7 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
 
         $buy_box_share = $this->getBuyBoxShare($listing->id);
 
-        $quantum = 20;
+        $quantum = 0.05 * $listing->marketplace_selling_price;
         if($this->buyBoxShareIsHigh($buy_box_share)) {
             $predicted_price = $listing->marketplace_selling_price + 2*$quantum;
         }
@@ -43,12 +43,12 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
     }
 
     protected function buyBoxShareIsLow($buy_box_share) {
-        return $buy_box_share < 0.4;
+        return $buy_box_share < 0.3;
     }
 
-    public function getBuyBoxShare($marketplace_listing_id, $num_days=1)
+    public function getBuyBoxShare($marketplace_listing_id, $num_hours=3)
     {
-        $snapshots = $this->buyBoxSnapshots($marketplace_listing_id, $num_days);
+        $snapshots = $this->buyBoxSnapshots($marketplace_listing_id, $num_hours);
 
         if($snapshots->count() == 0)
             throw new NoSnapshotsAvailableException($marketplace_listing_id);
@@ -64,12 +64,12 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
             return (bool)$value->offers[0]['has_buy_box'] === true;
         });
 
-        return $snapshots_with_buybox->count() / $snapshots_with_offers->count();
+        return ($snapshots_with_buybox->count() * 1.0) / $snapshots_with_offers->count();
     }
 
-    protected function buyBoxSnapshots($marketplace_listing_id, $num_days) {
+    protected function buyBoxSnapshots($marketplace_listing_id, $num_hours) {
         return Snapshot::where('marketplace_listing_id', $marketplace_listing_id)
-            ->where('updated_at', '>', Carbon::now()->subDays($num_days))
+            ->where('updated_at', '>', Carbon::now()->subHours($num_hours))
             ->get();
     }
 }
