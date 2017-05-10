@@ -10,7 +10,9 @@ use App\Repositories\CompanyProductRepository;
 use App\Repositories\MarketplaceListingRepository;
 use App\Repositories\MarketplaceRepository;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
+use Jenssegers\Mongodb\Query\Builder;
 use Znck\Transform\Facades\Transform;
 
 class AppServiceProvider extends ServiceProvider
@@ -59,6 +61,17 @@ class AppServiceProvider extends ServiceProvider
         $this->configureProductionEnv();
 
         $this->registerMarketplaceManager();
+
+        $this->app->singleton(MarketplaceManager::class, function () {
+            return new MarketplaceManager($this->app);
+        });
+
+        if (App::environment('local', 'staging')) {
+            Builder::macro('getName', function() {
+                return 'mongodb';
+            });
+        }
+
         $this->registerRepositories();
     }
 
