@@ -15,13 +15,21 @@ use Znck\Transform\Facades\Transform;
 
 class AppServiceProvider extends ServiceProvider
 {
-    protected $testing = [
+    protected $localServiceProviders = [
+        \Laravel\Tinker\TinkerServiceProvider::class,
+        \Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
+    ];
+
+    protected $testingServiceProviders = [
         \Laravel\Dusk\DuskServiceProvider::class,
     ];
 
-    protected $local = [
-        \Laravel\Tinker\TinkerServiceProvider::class,
-        \Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
+    protected $productionServiceProviders = [];
+
+    protected $repositories = [
+        CompanyProductRepositoryContract::class => CompanyProductRepository::class,
+        MarketplaceRepositoryContract::class => MarketplaceRepository::class,
+        MarketplaceListingRepositoryContract::class => MarketplaceListingRepository::class,
     ];
 
     /**
@@ -48,31 +56,16 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureTestingEnv();
         $this->configureDevEnv();
+        $this->configureProductionEnv();
 
-        $this->app->singleton(MarketplaceManager::class, function () {
-            return new MarketplaceManager($this->app);
-        });
-
+        $this->registerMarketplaceManager();
         $this->registerRepositories();
-    }
-
-    protected function registerRepositories()
-    {
-        $repositories = [
-            CompanyProductRepositoryContract::class => CompanyProductRepository::class,
-            MarketplaceRepositoryContract::class => MarketplaceRepository::class,
-            MarketplaceListingRepositoryContract::class => MarketplaceListingRepository::class,
-        ];
-
-        foreach ($repositories as $abstract => $concrete) {
-            $this->app->singleton($abstract, $concrete);
-        }
     }
 
     protected function configureTestingEnv()
     {
         if ($this->app->environment('testing')) {
-            foreach ($this->testing as $provider) {
+            foreach ($this->testingServiceProviders as $provider) {
                 $this->app->register($provider);
             }
         }
@@ -81,9 +74,32 @@ class AppServiceProvider extends ServiceProvider
     protected function configureDevEnv()
     {
         if ($this->app->environment('local')) {
-            foreach ($this->local as $provider) {
+            foreach ($this->localServiceProviders as $provider) {
                 $this->app->register($provider);
             }
+        }
+    }
+
+    protected function configureProductionEnv()
+    {
+        if ($this->app->environment('production')) {
+            foreach ($this->productionServiceProviders as $provider) {
+                $this->app->register($provider);
+            }
+        }
+    }
+
+    protected function registerMarketplaceManager()
+    {
+        $this->app->singleton(MarketplaceManager::class, function () {
+            return new MarketplaceManager($this->app);
+        });
+    }
+
+    protected function registerRepositories()
+    {
+        foreach ($this->repositories as $abstract => $concrete) {
+            $this->app->singleton($abstract, $concrete);
         }
     }
 }

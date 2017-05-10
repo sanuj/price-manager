@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Support\Facades\App;
 use Illuminate\Validation\ValidationException;
 use Response;
 use Symfony\Component\Debug\Exception\FlattenException;
@@ -35,6 +36,10 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $exception)
     {
+        if (App::environment('production') and $this->shouldReport($exception)) {
+            resolve('sentry')->captureException($exception);
+        }
+
         parent::report($exception);
     }
 
