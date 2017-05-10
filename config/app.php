@@ -169,6 +169,7 @@ return [
         Znck\Transform\TransformServiceProvider::class,
         Znck\Trust\TrustServiceProvider::class,
         Jenssegers\Mongodb\MongodbServiceProvider::class,
+	Spatie\ServerMonitor\ServerMonitorServiceProvider::class,
 
         /*
          * Application Service Providers...
