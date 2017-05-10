@@ -169,6 +169,7 @@ return [
         Znck\Transform\TransformServiceProvider::class,
         Znck\Trust\TrustServiceProvider::class,
         Jenssegers\Mongodb\MongodbServiceProvider::class,
+        Sentry\SentryLaravel\SentryLaravelServiceProvider::class,
 
         /*
          * Application Service Providers...

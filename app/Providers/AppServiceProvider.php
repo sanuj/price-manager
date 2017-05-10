@@ -24,9 +24,7 @@ class AppServiceProvider extends ServiceProvider
         \Laravel\Dusk\DuskServiceProvider::class,
     ];
 
-    protected $productionServiceProviders = [
-        \Sentry\SentryLaravel\SentryLaravelServiceProvider::class,
-    ];
+    protected $productionServiceProviders = [];
 
     protected $repositories = [
         CompanyProductRepositoryContract::class => CompanyProductRepository::class,
