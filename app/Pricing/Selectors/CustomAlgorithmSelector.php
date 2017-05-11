@@ -6,7 +6,7 @@ use App\Contracts\PricingAlgorithmContract;
 use App\Contracts\PricingAlgorithmSelectorContract;
 use App\MarketplaceListing;
 
-class MarketplaceListingPricingAlgorithmSelector implements PricingAlgorithmSelectorContract
+class CustomAlgorithmSelector implements PricingAlgorithmSelectorContract
 {
     public function algorithm(MarketplaceListing $listing): PricingAlgorithmContract
     {

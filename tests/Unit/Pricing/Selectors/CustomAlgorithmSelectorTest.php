@@ -8,7 +8,7 @@ use App\Pricing\Algorithms\UserDefinedPrice;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
-class MarketplaceListingPricingAlgorithmSelectorTest extends TestCase
+class CustomAlgorithmSelectorTest extends TestCase
 {
     use DatabaseMigrations;
 
@@ -31,7 +31,7 @@ class MarketplaceListingPricingAlgorithmSelectorTest extends TestCase
     }
 
     public function getAlgorithm($algorithm) {
-        return resolve(config('pricing.selectors.marketplace_listing'))
+        return resolve(config('pricing.selectors.custom'))
             ->algorithm(factory(MarketplaceListing::class, 1)->make([
                 'repricing_algorithm' => compact('algorithm')
             ])->first());
