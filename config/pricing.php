@@ -1,5 +1,5 @@
 <?php return [
-    'should_update' => false,
+    'should_update' => env('SHOULD_UPDATE_PRICE', false),
 
     'algorithms' => [
         \App\Pricing\Algorithms\UserDefinedPrice::class,
