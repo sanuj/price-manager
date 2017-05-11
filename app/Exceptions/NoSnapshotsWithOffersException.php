@@ -11,6 +11,7 @@ class NoSnapshotsWithOffersException extends Exception
 
     public function __construct(MarketplaceListing $marketplace_listing, $code = 0, Exception $previous = null)
     {
+        $this->marketplace_listing = $marketplace_listing;
         parent::__construct("No snapshots with offers available for listing ({$marketplace_listing->id}).", $code, $previous);
     }
 
