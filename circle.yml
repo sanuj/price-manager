@@ -12,6 +12,7 @@ machine:
 dependencies:
   pre:
     - echo "memory_limit = 2048M" > /opt/circleci/php/$(phpenv global)/etc/conf.d/memory.ini
+    - pecl install mongodb; echo "extension=mongodb.so" >> `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
     - type -P yarn &> /dev/null || curl -o- -s -L https://yarnpkg.com/install.sh | bash
   override:
     - composer install --dev --no-interaction --no-progress --ignore-platform-reqs

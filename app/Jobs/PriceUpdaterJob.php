@@ -3,6 +3,8 @@
 namespace App\Jobs;
 
 use App\Company;
+use App\Exceptions\NoSnapshotsAvailableException;
+use App\Exceptions\NoSnapshotsWithOffersException;
 use App\Exceptions\ThrottleLimitReachedException;
 use App\Managers\MarketplaceManager;
 use App\Marketplace;
@@ -43,7 +45,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
      */
     public function handle()
     {
-        error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE); // NOTICE: MWS SDK has deprecated code.
+
         $this->manager = resolve(MarketplaceManager::class);
 
         $this->debug('Running for company '.$this->company->name.'.');
@@ -55,6 +57,19 @@ class PriceUpdaterJob extends SelfSchedulingJob
                               ->chunk($this->getPerRequestCount(), function ($listings) {
                                   $this->updatePrice($listings);
                               });
+        } catch(NoSnapshotsAvailableException $e) {
+            // TODO: Too much repetitive code here.
+            $this->debug('NoSnapshotsAvailableException message: ' . $e->getMessage());
+            $marketplace_listing = $e->getMarketplaceListing();
+            $this->disableMarketplaceListing($marketplace_listing);
+            $this->reschedule();
+            return;
+        } catch(NoSnapshotsWithOffersException $e) {
+            $this->debug('NoSnapshotsAvailableException message: ' . $e->getMessage());
+            $marketplace_listing = $e->getMarketplaceListing();
+            $this->disableMarketplaceListing($marketplace_listing);
+            $this->reschedule();
+            return;
         } catch (ThrottleLimitReachedException $e) {
             $this->debug('Rescheduling, throttle limit reached.');
             $this->reschedule(60);
@@ -67,6 +82,15 @@ class PriceUpdaterJob extends SelfSchedulingJob
         }
 
         $this->reschedule(60 * $this->getFrequency());
+    }
+
+    protected function disableMarketplaceListing(MarketplaceListing $marketplace_listing) {
+        if($marketplace_listing) {
+            $marketplace_listing->status = 0;
+            $marketplace_listing->save();
+            // TODO: Increase log level and notify on slack.
+            $this->debug('Updated status = 0 of marketplace listing id = ' . $marketplace_listing->id);
+        }
     }
 
     /**
