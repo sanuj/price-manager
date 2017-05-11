@@ -11,6 +11,7 @@ use App\MarketplaceListing;
 use App\Mongo\Snapshot;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Log;
 
 class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
 {
@@ -39,6 +40,8 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
         else
             $predicted_price = $selling_price + $increment_factor * $selling_price;
 
+        Log::info('Price Update: bbs: ' . $buy_box_share . ', predicted_price: '
+            . min($max_price, max($predicted_price, $min_price)));
         return min($max_price, max($predicted_price, $min_price));
     }
 
