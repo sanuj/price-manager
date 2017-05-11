@@ -30,7 +30,7 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
         if($max_price == 0 or $max_price < $min_price)
             throw new InvalidMaxPriceException($listing);
 
-        $buy_box_share = $this->getBuyBoxShare($listing->id);
+        $buy_box_share = $this->getBuyBoxShare($listing);
 
         if($this->buyBoxShareIsHigh($buy_box_share))
             $predicted_price = $selling_price + $multiplier * $increment_factor * $selling_price;
@@ -50,19 +50,19 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
         return $buy_box_share < 0.3;
     }
 
-    public function getBuyBoxShare($marketplace_listing_id, $num_hours=3)
+    public function getBuyBoxShare(MarketplaceListing $marketplace_listing, $num_hours=3)
     {
-        $snapshots = $this->buyBoxSnapshots($marketplace_listing_id, $num_hours);
+        $snapshots = $this->buyBoxSnapshots($marketplace_listing->id, $num_hours);
 
         if($snapshots->count() == 0)
-            throw new NoSnapshotsAvailableException($marketplace_listing_id);
+            throw new NoSnapshotsAvailableException($marketplace_listing);
 
         $snapshots_with_offers = $snapshots->filter(function ($value, $key) {
             return count($value->offers) > 0;
         });
 
         if($snapshots_with_offers->count() == 0)
-            throw new NoSnapshotsWithOffersException($marketplace_listing_id);
+            throw new NoSnapshotsWithOffersException($marketplace_listing);
 
         $snapshots_with_buybox = $snapshots_with_offers->filter(function ($value, $key) {
             return (bool)$value->offers[0]['has_buy_box'] === true;

@@ -15,25 +15,25 @@ class BuyBoxShareHeuristicPriceTest extends TestCase
     use DatabaseMigrations;
 
     public function test_it_can_calculate_buy_box_share() {
-        $marketplace_listing_id = rand(1, 100);
-        $buy_box_share = $this->algorithm(true, $this->getSnapshots($marketplace_listing_id))
-            ->getBuyBoxShare($marketplace_listing_id);
+        $marketplace_listing = $this->getMarketplaceListing();
+        $buy_box_share = $this->algorithm(true, $this->getSnapshots($marketplace_listing->id))
+            ->getBuyBoxShare($marketplace_listing);
         $this->assertLessThanOrEqual(1, $buy_box_share);
         $this->assertGreaterThanOrEqual(0, $buy_box_share);
     }
 
     public function test_it_can_handle_zero_snapshots() {
         $this->expectException(NoSnapshotsAvailableException::class);
-        $marketplace_listing_id = rand(1, 100);
-        $this->algorithm(true, $this->getSnapshots($marketplace_listing_id, [], [], 0))
-            ->getBuyBoxShare($marketplace_listing_id);
+        $marketplace_listing = $this->getMarketplaceListing();
+        $this->algorithm(true, $this->getSnapshots($marketplace_listing->id, [], [], 0))
+            ->getBuyBoxShare($marketplace_listing);
     }
 
     public function test_it_can_handle_snapshots_without_any_offers() {
         $this->expectException(NoSnapshotsWithOffersException::class);
-        $marketplace_listing_id = rand(1, 100);
-        $this->algorithm(true, $this->getSnapshots($marketplace_listing_id, []))
-            ->getBuyBoxShare($marketplace_listing_id);
+        $marketplace_listing = $this->getMarketplaceListing();
+        $this->algorithm(true, $this->getSnapshots($marketplace_listing->id, []))
+            ->getBuyBoxShare($marketplace_listing);
     }
 
     public function test_it_can_increment_price() {
@@ -95,14 +95,20 @@ class BuyBoxShareHeuristicPriceTest extends TestCase
     public function algorithm($mock_buy_box_snapshots = false, $snapshots = null) {
         return $mock_buy_box_snapshots ?
             $this->mockMethod('buyBoxSnapshots', $snapshots ?? $this->getSnapshots())
-            : $this->mockMethod('getBuyBoxShare', [[1, 3, 0.1],[50, 3, 0.5],[100, 3, 0.8]], true);
+            : $this->mockMethod('getBuyBoxShare', function (MarketplaceListing $marketplace_listing) {
+                switch($marketplace_listing->id) {
+                    case 1: return 0.1;
+                    case 100: return 0.8;
+                    default: return 0.5;
+                }
+            });
     }
 
-    public function mockMethod($method_name, $return_value, $map_return=false) {
+    public function mockMethod($method_name, $return_value) {
         $algorithm = $this->getMockBuilder(BuyBoxShareHeuristicPrice::class)
             ->setMethods([$method_name])->getMock();
         $algorithm->method($method_name)
-            ->will($map_return ? $this->returnValueMap($return_value) : $this->returnValue($return_value));
+            ->will(is_callable($return_value) ? $this->returnCallback($return_value) : $this->returnValue($return_value));
         return $algorithm;
     }
 
@@ -119,7 +125,7 @@ class BuyBoxShareHeuristicPriceTest extends TestCase
     }
 
     public function getMarketplaceListing($id=null, $marketplace_selling_price=null, $marketplace_min_price=null,
-                                          $marketplace_max_price=null, $repricing_algorithm=null) {
+                                          $marketplace_max_price=null, $repricing_algorithm=null) : MarketplaceListing {
         $params = [];
         if(!is_null($id))
             $params = array_merge($params, compact('id'));
