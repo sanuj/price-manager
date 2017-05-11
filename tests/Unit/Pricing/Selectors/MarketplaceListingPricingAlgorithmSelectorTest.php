@@ -5,7 +5,6 @@ namespace Tests\Unit\Jobs;
 use App\MarketplaceListing;
 use App\Pricing\Algorithms\BuyBoxShareHeuristicPrice;
 use App\Pricing\Algorithms\UserDefinedPrice;
-use App\Pricing\Selectors\MarketplaceListingPricingAlgorithmSelector;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
@@ -31,13 +30,10 @@ class MarketplaceListingPricingAlgorithmSelectorTest extends TestCase
         $this->getAlgorithm('foobar');
     }
 
-    public function getAlgorithm($name) {
-        return resolve(MarketplaceListingPricingAlgorithmSelector::class)
+    public function getAlgorithm($algorithm) {
+        return resolve(config('pricing.selectors.marketplace_listing'))
             ->algorithm(factory(MarketplaceListing::class, 1)->make([
-                'repricing_algorithm' => [
-                    'selector' => 'marketplace_listing',
-                    'algorithm' => $name,
-                ]
+                'repricing_algorithm' => compact('algorithm')
             ])->first());
     }
 
