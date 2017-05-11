@@ -2,8 +2,8 @@
     'should_update' => env('SHOULD_UPDATE_PRICE', false),
 
     'algorithms' => [
-        \App\Pricing\Algorithms\UserDefinedPrice::class,
-        \App\Pricing\Algorithms\BuyBoxShareHeuristicPrice::class,
+        'UserDefinedPrice',
+        'BuyBoxShareHeuristicPrice',
     ],
 
     'default_selector' => 'uniform_random',
