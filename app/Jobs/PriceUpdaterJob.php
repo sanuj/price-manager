@@ -108,6 +108,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
         });
 
         if (!count($listings)) {
+            $this->debug('No listings left to reprice.');
             return;
         }
 
@@ -128,6 +129,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
         $algorithm = $selector->algorithm($listing);
         $price = $algorithm->predict($listing);
 
+        $this->debug('Saving snapshot for listing: ' . $listing->id . ' with predicted price: ' . $price);
         with(new PriceHistory([
             'marketplace_listing_id' => $listing->getKey(),
             'algorithm' => get_class($algorithm),
@@ -135,6 +137,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
             'old_price' => $listing->marketplace_selling_price,
             'price' => $price,
         ]))->save();
+        $this->debug('Snapshot saved for listing: ' . $listing->id);
 
         $diff = round(abs($listing->marketplace_selling_price - $price), 2);
         if ($diff > .99) {
