@@ -10,32 +10,36 @@ use App\Exceptions\NoSnapshotsWithOffersException;
 use App\MarketplaceListing;
 use App\Mongo\Snapshot;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 
 class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
 {
 
     public function predict(MarketplaceListing $listing): float
     {
-        if($listing->min_price == 0)
+        $min_price = $listing->marketplace_min_price;
+        $max_price = $listing->marketplace_max_price;
+        $selling_price = $listing->marketplace_selling_price;
+        $increment_factor = $listing->repricing_algorithm['params']['increment_factor'] ?? 0.05;
+        $decrement_factor = $listing->repricing_algorithm['params']['decrement_factor'] ?? 0.05;
+        $multiplier = $listing->repricing_algorithm['params']['multiplier'] ?? 2;
+
+        if($min_price == 0)
             throw new InvalidMinPriceException($listing);
 
-        if($listing->max_price == 0 or $listing->max_price < $listing->min_price)
+        if($max_price == 0 or $max_price < $min_price)
             throw new InvalidMaxPriceException($listing);
 
         $buy_box_share = $this->getBuyBoxShare($listing->id);
 
-        $quantum = 0.05 * $listing->marketplace_selling_price;
-        if($this->buyBoxShareIsHigh($buy_box_share)) {
-            $predicted_price = $listing->marketplace_selling_price + 2*$quantum;
-        }
-        else if($this->buyBoxShareIsLow($buy_box_share)) {
-            $predicted_price = $listing->marketplace_selling_price - $quantum;
-        }
-        else {
-            $predicted_price = $listing->marketplace_selling_price + $quantum;
-        }
+        if($this->buyBoxShareIsHigh($buy_box_share))
+            $predicted_price = $selling_price + $multiplier * $increment_factor * $selling_price;
+        else if($this->buyBoxShareIsLow($buy_box_share))
+            $predicted_price = $selling_price - $decrement_factor * $selling_price;
+        else
+            $predicted_price = $selling_price + $increment_factor * $selling_price;
 
-        return min($listing->max_price, max($predicted_price, $listing->min_price));
+        return min($max_price, max($predicted_price, $min_price));
     }
 
     protected function buyBoxShareIsHigh($buy_box_share) {
@@ -67,7 +71,7 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
         return ($snapshots_with_buybox->count() * 1.0) / $snapshots_with_offers->count();
     }
 
-    protected function buyBoxSnapshots($marketplace_listing_id, $num_hours) {
+    protected function buyBoxSnapshots($marketplace_listing_id, $num_hours) : Collection {
         return Snapshot::where('marketplace_listing_id', $marketplace_listing_id)
             ->where('updated_at', '>', Carbon::now()->subHours($num_hours))
             ->get();
