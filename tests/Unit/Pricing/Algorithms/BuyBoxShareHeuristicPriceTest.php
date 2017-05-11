@@ -4,6 +4,7 @@ namespace Tests\Unit\Pricing\Algorithms;
 
 use App\Exceptions\NoSnapshotsAvailableException;
 use App\Exceptions\NoSnapshotsWithOffersException;
+use App\MarketplaceListing;
 use App\Mongo\Snapshot;
 use App\Pricing\Algorithms\BuyBoxShareHeuristicPrice;
 use Tests\TestCase;
@@ -34,6 +35,12 @@ class BuyBoxShareHeuristicPriceTest extends TestCase
         $algorithm->getBuyBoxShare($marketplace_listing_id);
     }
 
+    public function test_it_can_decrement_price() {
+        $algorithm = $this->algorithm();
+        $predicted_price = $algorithm->predict($this->getMarketplaceListing(100, 800, 750, 850));
+        echo 'predicted price: ' . $predicted_price . PHP_EOL;
+    }
+
     public function algorithm($mock_buy_box_snapshots = false, $snapshots = null) {
         return $mock_buy_box_snapshots ?
             $this->mockMethod('buyBoxSnapshots', $snapshots ?? $this->getSnapshots())
@@ -58,6 +65,21 @@ class BuyBoxShareHeuristicPriceTest extends TestCase
             $params = array_merge($params, compact('competitors'));
 
         return factory(Snapshot::class, $count)->make($params);
+    }
+
+    public function getMarketplaceListing($marketplace_listing_id=null, $marketplace_selling_price=null,
+                                          $marketplace_min_price=null, $marketplace_max_price=null) {
+        $params = [];
+        if(!is_null($marketplace_listing_id))
+            $params = array_merge($params, compact('marketplace_listing_id'));
+        if(!is_null($marketplace_selling_price))
+            $params = array_merge($params, compact('marketplace_selling_price'));
+        if(!is_null($marketplace_min_price))
+            $params = array_merge($params, compact('marketplace_min_price'));
+        if(!is_null($marketplace_max_price))
+            $params = array_merge($params, compact('marketplace_max_price'));
+
+        return factory(MarketplaceListing::class)->make($params);
     }
 
 }
