@@ -9,10 +9,13 @@ use App\Managers\MarketplaceManager;
 use App\Repositories\CompanyProductRepository;
 use App\Repositories\MarketplaceListingRepository;
 use App\Repositories\MarketplaceRepository;
+use GuzzleHttp\Client as Guzzle;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
 use Jenssegers\Mongodb\Query\Builder;
+use Maknz\Slack\Client as Slack;
+use Queue;
 use Znck\Transform\Facades\Transform;
 
 class AppServiceProvider extends ServiceProvider
@@ -47,6 +50,13 @@ class AppServiceProvider extends ServiceProvider
                 '_type' => $model->getMorphClass(),
             ];
         });
+
+        Queue::failing(function ($connection, $job, $data) {
+            /** @var \App\Jobs\PriceUpdaterJob|\App\Jobs\PriceWatcherJob $job */
+            resolve(Slack::class)->send(ucwords($job->getMarketplace()->name).' '.get_class($job).' failed for '.
+                                        $job->getCompany()->name.'. Company ID: '.$job->getCompany()->getKey().
+                                        ', Marketplace ID: '.$job->getMarketplace()->getKey());
+        });
     }
 
     /**
@@ -60,19 +70,12 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDevEnv();
         $this->configureProductionEnv();
 
+        $this->registerFailedJobNotifier();
         $this->registerMarketplaceManager();
-
-        $this->app->singleton(MarketplaceManager::class, function () {
-            return new MarketplaceManager($this->app);
-        });
-
-        if (App::environment('local', 'staging')) {
-            Builder::macro('getName', function() {
-                return 'mongodb';
-            });
-        }
-
+        $this->registerMarketplaceManager();
         $this->registerRepositories();
+
+        $this->patchMongoBuilder();
     }
 
     protected function configureTestingEnv()
@@ -113,6 +116,35 @@ class AppServiceProvider extends ServiceProvider
     {
         foreach ($this->repositories as $abstract => $concrete) {
             $this->app->singleton($abstract, $concrete);
+        }
+    }
+
+    protected function registerFailedJobNotifier()
+    {
+        $this->app->singleton(Slack::class, function () {
+            return new Slack(
+                config('slack.endpoint'),
+                [
+                    'channel' => config('slack.channel'),
+                    'username' => config('slack.username'),
+                    'icon' => config('slack.icon'),
+                    'link_names' => config('slack.link_names'),
+                    'unfurl_links' => config('slack.unfurl_links'),
+                    'unfurl_media' => config('slack.unfurl_media'),
+                    'allow_markdown' => config('slack.allow_markdown'),
+                    'markdown_in_attachments' => config('slack.markdown_in_attachments'),
+                ],
+                new Guzzle
+            );
+        });
+    }
+
+    protected function patchMongoBuilder()
+    {
+        if (App::environment('local', 'staging')) {
+            Builder::macro('getName', function () {
+                return 'mongodb';
+            });
         }
     }
 }

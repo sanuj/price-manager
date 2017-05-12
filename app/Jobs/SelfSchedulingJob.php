@@ -16,10 +16,28 @@ abstract class SelfSchedulingJob implements ShouldQueue
      * @var \App\Marketplace
      */
     public $marketplace;
+
+    /**
+     * @return \App\Marketplace
+     */
+    public function getMarketplace(): \App\Marketplace
+    {
+        return $this->marketplace;
+    }
+
     /**
      * @var \App\Company
      */
     public $company;
+
+    /**
+     * @return \App\Company
+     */
+    public function getCompany(): \App\Company
+    {
+        return $this->company;
+    }
+
     /**
      * Bundle multiple reprice requests.
      *
