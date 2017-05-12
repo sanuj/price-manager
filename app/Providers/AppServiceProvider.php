@@ -137,7 +137,7 @@ class AppServiceProvider extends ServiceProvider
                     'allow_markdown' => config('slack.allow_markdown'),
                     'markdown_in_attachments' => config('slack.markdown_in_attachments'),
                 ],
-                new Guzzle
+                new Guzzle()
             );
         });
     }

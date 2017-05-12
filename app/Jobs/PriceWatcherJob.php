@@ -148,7 +148,7 @@ class PriceWatcherJob extends SelfSchedulingJob
         if (is_numeric($offer['price']) && !$this->isPriceEqual($listing->marketplace_selling_price, $offer['price'])) {
             $this->debug("Price inconsistency for MarketplaceListing({$listing->getKey()})", [
                 'local' => $listing->marketplace_selling_price,
-                'remote' => $offers['price'],
+                'remote' => $offer['price'],
                 'use' => $offer,
                 'available' => $offers[$listing->uid],
             ]);
