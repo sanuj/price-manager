@@ -49,8 +49,6 @@ class PriceUpdaterJob extends SelfSchedulingJob
 
         $this->manager = resolve(MarketplaceManager::class);
 
-        $this->debug('Updating prices for '.$this->company->name.'.');
-
         try {
             MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
                               ->whereCompanyId($this->company->getKey())
@@ -80,6 +78,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
         $api = $this->manager->driver($this->marketplace->name);
         $api->use($this->company->credentialsFor($this->marketplace));
 
+        /** @var MarketplaceListing[]|Collection $listings */
         $listings = $listings->map(function (MarketplaceListing $listing) {
             return $this->reprice($listing);
         })->filter(function (MarketplaceListing $listing) {
@@ -87,25 +86,26 @@ class PriceUpdaterJob extends SelfSchedulingJob
         });
 
         if (!count($listings)) {
-            $this->debug('No listings left to reprice.');
-
             return;
         }
 
-        /** @var MarketplaceListing $listing */
-        foreach ($listings as $listing) {
-            $this->debug("\tUpdate ({$listing->uid}): {$listing->getOriginal('marketplace_selling_price')} -> {$listing->marketplace_selling_price}");
-        }
+        $changes = $listings->map(function (MarketplaceListing $listing) {
+            return [
+                'id' => $listing->getKey(),
+                'old' => $listing->getOriginal('marketplace_selling_price'),
+                'new' => $listing->marketplace_selling_price,
+            ];
+        });
 
         if (config('pricing.should_update')) {
             $api->setPrice($listings);
             $listings->each(function (MarketplaceListing $listing) {
                 $listing->save();
             });
-        }
-        else {
-            $this->debug("Not updating price for listing id ({$listing->uid}) as pricing.should_update is '"
-                . config('pricing.should_update') . "'");
+
+            $this->debug('Update price on '.$this->marketplace->name, $changes);
+        } else {
+            $this->debug('Price updating disabled. Expected changes: ', $changes);
         }
     }
 
@@ -115,7 +115,6 @@ class PriceUpdaterJob extends SelfSchedulingJob
         $algorithm = $selector->algorithm($listing);
         $price = $algorithm->predict($listing);
 
-        $this->debug('Saving snapshot for listing: '.$listing->id.' with predicted price: '.$price);
         with(new PriceHistory([
             'marketplace_listing_id' => $listing->getKey(),
             'algorithm' => get_class($algorithm),
@@ -124,9 +123,9 @@ class PriceUpdaterJob extends SelfSchedulingJob
             'price' => $price,
             'should_update' => config('pricing.should_update'),
         ]))->save();
-        $this->debug('Snapshot saved for listing: '.$listing->id);
 
         $diff = round(abs($listing->marketplace_selling_price - $price), 2);
+
         if ($diff > .99) {
             $listing->marketplace_selling_price = $price;
         }
