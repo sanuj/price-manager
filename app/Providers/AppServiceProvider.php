@@ -13,9 +13,9 @@ use GuzzleHttp\Client as Guzzle;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
+use Jenssegers\Mongodb\Query\Builder;
 use Maknz\Slack\Client as Slack;
 use Queue;
-use Jenssegers\Mongodb\Query\Builder;
 use Znck\Transform\Facades\Transform;
 
 class AppServiceProvider extends ServiceProvider
@@ -71,20 +71,11 @@ class AppServiceProvider extends ServiceProvider
         $this->configureProductionEnv();
 
         $this->registerFailedJobNotifier();
-
         $this->registerMarketplaceManager();
-
-        $this->app->singleton(MarketplaceManager::class, function () {
-            return new MarketplaceManager($this->app);
-        });
-
-        if (App::environment('local', 'staging')) {
-            Builder::macro('getName', function() {
-                return 'mongodb';
-            });
-        }
-
+        $this->registerMarketplaceManager();
         $this->registerRepositories();
+
+        $this->patchMongoBuilder();
     }
 
     protected function configureTestingEnv()
@@ -130,7 +121,7 @@ class AppServiceProvider extends ServiceProvider
 
     protected function registerFailedJobNotifier(): void
     {
-        $this->app->singleton(Slack::class, function ($app) {
+        $this->app->singleton(Slack::class, function () {
             return new Slack(
                 config('slack.endpoint'),
                 [
@@ -146,5 +137,14 @@ class AppServiceProvider extends ServiceProvider
                 new Guzzle
             );
         });
+    }
+
+    protected function patchMongoBuilder(): void
+    {
+        if (App::environment('local', 'staging')) {
+            Builder::macro('getName', function () {
+                return 'mongodb';
+            });
+        }
     }
 }
