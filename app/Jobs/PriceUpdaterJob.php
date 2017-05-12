@@ -103,6 +103,10 @@ class PriceUpdaterJob extends SelfSchedulingJob
                 $listing->save();
             });
         }
+        else {
+            $this->debug("Not updating price for listing id ({$listing->uid}) as pricing.should_update is '"
+                . config('pricing.should_update') . "'");
+        }
     }
 
     protected function reprice(MarketplaceListing $listing): MarketplaceListing
@@ -118,6 +122,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
             'selector' => get_class($selector),
             'old_price' => $listing->marketplace_selling_price,
             'price' => $price,
+            'should_update' => config('pricing.should_update'),
         ]))->save();
         $this->debug('Snapshot saved for listing: '.$listing->id);
 
