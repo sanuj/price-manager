@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Contracts\Repositories\CompanyProductRepositoryContract;
 use App\Contracts\Repositories\MarketplaceListingRepositoryContract;
 use App\Contracts\Repositories\MarketplaceRepositoryContract;
+use App\Jobs\SelfSchedulingJob;
 use App\Managers\MarketplaceManager;
 use App\Repositories\CompanyProductRepository;
 use App\Repositories\MarketplaceListingRepository;
@@ -53,12 +54,15 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Queue::failing(function (JobFailed $event) {
-            /** @var \App\Jobs\PriceUpdaterJob|\App\Jobs\PriceWatcherJob $job */
             $job = $event->job;
 
-            resolve(Slack::class)->send(ucwords($job->getMarketplace()->name).' '.get_class($job).' failed for '.
-                                        $job->getCompany()->name.'. Company ID: '.$job->getCompany()->getKey().
-                                        ', Marketplace ID: '.$job->getMarketplace()->getKey());
+            if ($job instanceof SelfSchedulingJob) {
+                resolve(Slack::class)->send(ucwords($job->getMarketplace()->name).' '.get_class($job).' failed for '.
+                                            $job->getCompany()->name.'. Company ID: '.$job->getCompany()->getKey().
+                                            ', Marketplace ID: '.$job->getMarketplace()->getKey());
+            } else {
+                resolve(Slack::class)->send(get_class($job).' failed.');
+            }
         });
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Marketplace;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -20,7 +21,7 @@ abstract class SelfSchedulingJob implements ShouldQueue
     /**
      * @return \App\Marketplace
      */
-    public function getMarketplace(): \App\Marketplace
+    public function getMarketplace(): Marketplace
     {
         return $this->marketplace;
     }
