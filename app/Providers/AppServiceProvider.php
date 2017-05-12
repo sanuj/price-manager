@@ -119,7 +119,7 @@ class AppServiceProvider extends ServiceProvider
         }
     }
 
-    protected function registerFailedJobNotifier(): void
+    protected function registerFailedJobNotifier()
     {
         $this->app->singleton(Slack::class, function () {
             return new Slack(
@@ -139,7 +139,7 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
-    protected function patchMongoBuilder(): void
+    protected function patchMongoBuilder()
     {
         if (App::environment('local', 'staging')) {
             Builder::macro('getName', function () {
