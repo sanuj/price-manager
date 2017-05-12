@@ -29,6 +29,10 @@ trait Revisionable
                              .$model->getKey().', '.$model->getMorphClass());
             }
 
+            if (!count(static::$pendingRevisions[$model->getKey()])) {
+                return;
+            }
+
             $revision = new Revision(static::$pendingRevisions[$model->getKey()]);
 
             $revision->revisionable()->associate($model);
