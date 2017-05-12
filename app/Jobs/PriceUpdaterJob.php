@@ -99,8 +99,10 @@ class PriceUpdaterJob extends SelfSchedulingJob
 
         if (config('pricing.should_update')) {
             $api->setPrice($listings);
+            $listings->each(function (MarketplaceListing $listing) {
+                $listing->save();
+            });
         }
-
     }
 
     protected function reprice(MarketplaceListing $listing): MarketplaceListing
