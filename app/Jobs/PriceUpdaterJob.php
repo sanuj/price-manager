@@ -49,7 +49,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
 
         $this->manager = resolve(MarketplaceManager::class);
 
-        $this->debug('Running for company '.$this->company->name.'.');
+        $this->debug('Updating prices for '.$this->company->name.'.');
 
         try {
             MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())

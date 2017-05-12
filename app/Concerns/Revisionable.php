@@ -15,7 +15,7 @@ trait Revisionable
     public static function bootRevisionable()
     {
         static::updating(function (Model $model) {
-            $to = $model->getDirty();
+            $to = static::filterRevisionableFields($model);
             $from = array_only($model->getOriginal(), array_keys($to));
 
             static::$pendingRevisions[$model->getKey()] = compact('from', 'to');
@@ -40,6 +40,24 @@ trait Revisionable
 
             unset(static::$pendingRevisions[$model->getKey()]);
         });
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Model $model
+     *
+     * @return array
+     */
+    static private function filterRevisionableFields(Model $model)
+    {
+        if (method_exists($model, 'getRevisionableFields')) {
+            return array_only($model->getDirty(), $model->getRevisionableFields());
+        }
+
+        if (method_exists($model, 'getNonRevisionableFields')) {
+            return array_except($model->getDirty(), $model->getNonRevisionableFields());
+        }
+
+        return array_except($model->getDirty(), ['updated_at', 'created_at']);
     }
 
     public function revisions()
