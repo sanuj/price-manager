@@ -31,28 +31,6 @@ namespace App{
 
 namespace App{
 /**
- * App\CompanyMarketplace
- *
- * @property int $id
- * @property int $company_id
- * @property int $marketplace_id
- * @property string $credentials
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
- * @property-read \App\Company $company
- * @property-read \App\Marketplace $marketplace
- * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereCompanyId($value)
- * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereCreatedAt($value)
- * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereCredentials($value)
- * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereId($value)
- * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereMarketplaceId($value)
- * @method static \Illuminate\Database\Query\Builder|\App\CompanyMarketplace whereUpdatedAt($value)
- */
-	class CompanyMarketplace extends \Eloquent {}
-}
-
-namespace App{
-/**
  * App\CompanyProduct
  *
  * @property int $id
@@ -106,6 +84,7 @@ namespace App{
  * @property int $company_id
  * @property int $company_product_id
  * @property string $uid
+ * @property string $sku
  * @property string $url
  * @property string $ref_num
  * @property int $selling_price
@@ -119,6 +98,7 @@ namespace App{
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property array $repricing_algorithm
+ * @property int $status
  * @property-read \App\Company $company
  * @property-read \App\CompanyProduct $companyProduct
  * @property-read \App\Marketplace $marketplace
@@ -139,6 +119,8 @@ namespace App{
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereRefNum($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereRepricingAlgorithm($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereSellingPrice($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereSku($value)
+ * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereStatus($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereUid($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereUpdatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|\App\MarketplaceListing whereUrl($value)

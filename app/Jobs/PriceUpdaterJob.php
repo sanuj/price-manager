@@ -3,14 +3,15 @@
 namespace App\Jobs;
 
 use App\Company;
-use App\Exceptions\NoSnapshotsAvailableException;
-use App\Exceptions\NoSnapshotsWithOffersException;
+use App\Exceptions\MarketplaceListingException;
 use App\Exceptions\ThrottleLimitReachedException;
 use App\Managers\MarketplaceManager;
 use App\Marketplace;
 use App\MarketplaceListing;
 use App\Mongo\PriceHistory;
 use Illuminate\Database\Eloquent\Collection;
+use Log;
+use Maknz\Slack\Client as Slack;
 
 class PriceUpdaterJob extends SelfSchedulingJob
 {
@@ -57,40 +58,18 @@ class PriceUpdaterJob extends SelfSchedulingJob
                               ->chunk($this->getPerRequestCount(), function ($listings) {
                                   $this->updatePrice($listings);
                               });
-        } catch(NoSnapshotsAvailableException $e) {
-            // TODO: Too much repetitive code here.
-            $this->debug('NoSnapshotsAvailableException message: ' . $e->getMessage());
-            $marketplace_listing = $e->getMarketplaceListing();
-            $this->disableMarketplaceListing($marketplace_listing);
-            $this->reschedule();
-            return;
-        } catch(NoSnapshotsWithOffersException $e) {
-            $this->debug('NoSnapshotsAvailableException message: ' . $e->getMessage());
-            $marketplace_listing = $e->getMarketplaceListing();
-            $this->disableMarketplaceListing($marketplace_listing);
-            $this->reschedule();
+        } catch (MarketplaceListingException $e) {
+            $this->disableAndReschedule($e);
+
             return;
         } catch (ThrottleLimitReachedException $e) {
             $this->debug('Rescheduling, throttle limit reached.');
             $this->reschedule(60);
 
             return;
-        } catch (\Throwable $e) {
-            $this->debug('There is an error. '.$e->getMessage());
-
-            throw $e;
         }
 
         $this->reschedule(60 * $this->getFrequency());
-    }
-
-    protected function disableMarketplaceListing(MarketplaceListing $marketplace_listing) {
-        if($marketplace_listing) {
-            $marketplace_listing->status = 0;
-            $marketplace_listing->save();
-            // TODO: Increase log level and notify on slack.
-            $this->debug('Updated status = 0 of marketplace listing id = ' . $marketplace_listing->id);
-        }
     }
 
     /**
@@ -109,12 +88,13 @@ class PriceUpdaterJob extends SelfSchedulingJob
 
         if (!count($listings)) {
             $this->debug('No listings left to reprice.');
+
             return;
         }
 
         /** @var MarketplaceListing $listing */
         foreach ($listings as $listing) {
-            $this->debug("\tUpdate ({$listing->uid}): {$listing->getOriginal('marketplace_selling_price')} -> {$listings->marketplace_selling_price}");
+            $this->debug("\tUpdate ({$listing->uid}): {$listing->getOriginal('marketplace_selling_price')} -> {$listing->marketplace_selling_price}");
         }
 
         if (config('pricing.should_update')) {
@@ -129,7 +109,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
         $algorithm = $selector->algorithm($listing);
         $price = $algorithm->predict($listing);
 
-        $this->debug('Saving snapshot for listing: ' . $listing->id . ' with predicted price: ' . $price);
+        $this->debug('Saving snapshot for listing: '.$listing->id.' with predicted price: '.$price);
         with(new PriceHistory([
             'marketplace_listing_id' => $listing->getKey(),
             'algorithm' => get_class($algorithm),
@@ -137,7 +117,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
             'old_price' => $listing->marketplace_selling_price,
             'price' => $price,
         ]))->save();
-        $this->debug('Snapshot saved for listing: ' . $listing->id);
+        $this->debug('Snapshot saved for listing: '.$listing->id);
 
         $diff = round(abs($listing->marketplace_selling_price - $price), 2);
         if ($diff > .99) {
@@ -162,5 +142,28 @@ class PriceUpdaterJob extends SelfSchedulingJob
     protected function getDefaultSelectorName()
     {
         return config('pricing.default_selector');
+    }
+
+    /**
+     * @param MarketplaceListingException $exception
+     */
+    protected function disableAndReschedule(MarketplaceListingException $exception)
+    {
+        $listing = $exception->getMarketplaceListing();
+        $listing->update(['status' => 0]);
+
+        resolve(Slack::class)
+            ->attach([
+                'ASIN' => $listing->uid,
+                'SKU' => $listing->companyProduct->sku,
+                'reason' => get_class($exception),
+                'company' => $this->company->getKey(),
+                'marketplace' => $this->marketplace->getKey(),
+            ])
+            ->send('Disabling listing on '.$this->marketplace->name.' for '.$this->company->name.'.');
+
+        Log::error($exception);
+
+        $this->reschedule();
     }
 }
