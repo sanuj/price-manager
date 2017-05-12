@@ -34,10 +34,7 @@ class PriceWatcherJob extends SelfSchedulingJob
      */
     public function handle()
     {
-        error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE); // NOTICE: MWS SDK has deprecated code.
         $this->manager = resolve(MarketplaceManager::class);
-
-        $this->debug('Run for '.$this->company->name);
 
         $listings = $this->getRequiredListings();
 
@@ -59,17 +56,12 @@ class PriceWatcherJob extends SelfSchedulingJob
                 $this->updateMarketplaceListing($listing, $offers);
             }
         } catch (ThrottleLimitReachedException $e) {
-            $this->debug('Rescheduling, throttle limit reached.');
+            $this->debug('Throttle limit reached.');
             $this->reschedule(60);
 
             return;
-        } catch (\Throwable $e) {
-            $this->debug('There is an error. '.$e->getMessage());
-
-            throw $e;
         }
 
-        // Watching Price Changes --->
         $this->reschedule();
     }
 
@@ -119,7 +111,10 @@ class PriceWatcherJob extends SelfSchedulingJob
     protected function recordPriceSnapshot(MarketplaceListing $listing, $offers, $competitors)
     {
         if (!isset($competitors[$listing->uid]) and !isset($offers[$listing->uid])) {
-            $this->debug('Missing Snapshot', ['listing_id' => $listing->getKey(), 'uid' => $listing->uid]);
+            $this->debug('Missing Snapshot', [
+                'listing_id' => $listing->getKey(),
+                'uid' => $listing->uid,
+            ]);
 
             return; // Not loaded from marketplace, should retry.
         }
@@ -146,20 +141,19 @@ class PriceWatcherJob extends SelfSchedulingJob
 
     protected function updateMarketplaceListing(MarketplaceListing $listing, $offers)
     {
-        if (array_key_exists($listing->uid, $offers)) {
-            $offers = $offers[$listing->uid];
-        } else {
+        if (!isset($offers[$listing->uid]) or is_null($offer = array_first($offers[$listing->uid]))) {
             return;
         }
-
-        if (count($offers) === 0) {
-            return;
-        }
-        $offer = $offers[0];
 
         if (is_numeric($offer['price']) && !$this->isPriceEqual($listing->marketplace_selling_price, $offer['price'])) {
-            $listing->marketplace_selling_price = $offer['price'];
-            $listing->save();
+            $this->debug("Price inconsistency for MarketplaceListing({$listing->getKey()})", [
+                'local' => $listing->marketplace_selling_price,
+                'remote' => $offers['price'],
+                'use' => $offer,
+                'available' => $offers[$listing->uid],
+            ]);
+
+            $listing->update(['marketplace_selling_price' => $offer['price']]);
         }
     }
 

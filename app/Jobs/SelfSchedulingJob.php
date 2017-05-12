@@ -91,12 +91,12 @@ abstract class SelfSchedulingJob implements ShouldQueue
 
     public function reschedule(int $seconds = 0)
     {
-        $this->debug('Rescheduling', ['queue' => $this->queue]);
+        $this->debug("Rescheduling (after ${seconds} seconds)");
         dispatch(with(new static($this->company, $this->marketplace))->delay($seconds));
     }
 
     protected function debug(string $message, array $payload = [])
     {
-        Log::info('RepricerService::Company('.$this->company->getKey().') - '.$message, $payload);
+        Log::debug(staic::class.'::Company('.$this->company->getKey().') - '.$message, $payload);
     }
 }
