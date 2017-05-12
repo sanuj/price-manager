@@ -11,6 +11,7 @@ use App\Repositories\MarketplaceListingRepository;
 use App\Repositories\MarketplaceRepository;
 use GuzzleHttp\Client as Guzzle;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
 use Jenssegers\Mongodb\Query\Builder;
@@ -51,8 +52,10 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
-        Queue::failing(function ($connection, $job, $data) {
+        Queue::failing(function (JobFailed $event) {
             /** @var \App\Jobs\PriceUpdaterJob|\App\Jobs\PriceWatcherJob $job */
+            $job = $event->job;
+
             resolve(Slack::class)->send(ucwords($job->getMarketplace()->name).' '.get_class($job).' failed for '.
                                         $job->getCompany()->name.'. Company ID: '.$job->getCompany()->getKey().
                                         ', Marketplace ID: '.$job->getMarketplace()->getKey());

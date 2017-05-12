@@ -3,20 +3,13 @@
 namespace App\Exceptions;
 
 use App\MarketplaceListing;
-use Exception;
 
-class NoSnapshotsWithOffersException extends Exception
+class NoSnapshotsWithOffersException extends MarketplaceListingException
 {
-    private $marketplace_listing = null;
-
-    public function __construct(MarketplaceListing $marketplace_listing, $code = 0, Exception $previous = null)
+    public function __construct(MarketplaceListing $listing)
     {
-        $this->marketplace_listing = $marketplace_listing;
-        parent::__construct("No snapshots with offers available for listing ({$marketplace_listing->id}).", $code, $previous);
-    }
+        $this->listing = $listing;
 
-    public function getMarketplaceListing() : MarketplaceListing {
-        return $this->marketplace_listing;
+        parent::__construct("No offers available for listing ({$listing->id}).");
     }
-
 }

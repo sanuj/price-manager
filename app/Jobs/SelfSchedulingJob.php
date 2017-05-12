@@ -44,12 +44,14 @@ abstract class SelfSchedulingJob implements ShouldQueue
      * @var int
      */
     protected $perRequestCount = 20;
+
     /**
      * Number of minutes after which listing is repriced.
      *
      * @var int
      */
     protected $frequency = 15;
+
     /**
      * @var \App\Managers\MarketplaceManager
      */
