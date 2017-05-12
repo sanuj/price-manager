@@ -86,7 +86,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
         });
 
         if (!count($listings)) {
-            $this->debug('No price updated.', $listings->pluck('marketplace_selling_price', 'id'));
+            $this->debug('No price updated.', $listings->pluck('marketplace_selling_price', 'id')->toArray());
 
             return;
         }
