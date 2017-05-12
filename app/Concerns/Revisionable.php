@@ -18,10 +18,16 @@ trait Revisionable
             $to = static::filterRevisionableFields($model);
             $from = array_only($model->getOriginal(), array_keys($to));
 
-            static::$pendingRevisions[$model->getKey()] = compact('from', 'to');
+            if (count($to)) {
+                static::$pendingRevisions[$model->getKey()] = compact('from', 'to');
+            }
         });
 
         static::updated(function (Model $model) {
+            if (!isset(static::$pendingRevisions[$model->getKey()])) {
+                return;
+            }
+
             $user = Auth::user();
 
             if (!$user && !App::runningInConsole()) {
