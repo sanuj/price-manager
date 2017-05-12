@@ -97,6 +97,6 @@ abstract class SelfSchedulingJob implements ShouldQueue
 
     protected function debug(string $message, array $payload = [])
     {
-        Log::debug(staic::class.'::Company('.$this->company->getKey().') - '.$message, $payload);
+        Log::debug(get_class($this).'::Company('.$this->company->getKey().') - '.$message, $payload);
     }
 }
