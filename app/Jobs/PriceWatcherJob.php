@@ -144,22 +144,27 @@ class PriceWatcherJob extends SelfSchedulingJob
         }
     }
 
-    protected function updateMarketplaceListing(MarketplaceListing $listing, $offers) {
-        if(array_key_exists($listing->uid, $offers))
+    protected function updateMarketplaceListing(MarketplaceListing $listing, $offers)
+    {
+        if (array_key_exists($listing->uid, $offers)) {
             $offers = $offers[$listing->uid];
-        else
+        } else {
             return;
+        }
 
-        if(count($offers) === 0) return;
+        if (count($offers) === 0) {
+            return;
+        }
         $offer = $offers[0];
 
-        if(is_numeric($offer['price']) && !$this->isPriceEqual($listing->marketplace_selling_price, $offer['price']) ) {
+        if (is_numeric($offer['price']) && !$this->isPriceEqual($listing->marketplace_selling_price, $offer['price'])) {
             $listing->marketplace_selling_price = $offer['price'];
             $listing->save();
         }
     }
 
-    protected function isPriceEqual($price_one, $price_two) {
+    protected function isPriceEqual($price_one, $price_two)
+    {
         return abs($price_one - $price_two) < 0.01;
     }
 }
