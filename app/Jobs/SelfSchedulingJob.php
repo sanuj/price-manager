@@ -96,8 +96,8 @@ abstract class SelfSchedulingJob implements ShouldQueue
         dispatch(with(new static($this->company, $this->marketplace))->delay($seconds));
     }
 
-    protected function debug(string $message, array $payload = [])
+    protected function debug(string $message, $payload = [])
     {
-        Log::debug(get_class($this).'::Company('.$this->company->getKey().') - '.$message, $payload);
+        Log::debug(get_class($this).'::Company('.$this->company->getKey().') - '.$message, (array)$payload);
     }
 }
