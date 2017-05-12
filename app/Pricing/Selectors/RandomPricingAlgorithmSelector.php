@@ -19,6 +19,6 @@ class RandomPricingAlgorithmSelector implements PricingAlgorithmSelectorContract
     {
         $index = random_int(1, count($this->algorithms));
 
-        return resolve($this->algorithms[$index - 1]);
+        return resolve('\App\Pricing\Algorithms\\'.$this->algorithms[$index - 1]);
     }
 }

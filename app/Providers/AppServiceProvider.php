@@ -11,9 +11,11 @@ use App\Repositories\MarketplaceListingRepository;
 use App\Repositories\MarketplaceRepository;
 use GuzzleHttp\Client as Guzzle;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\ServiceProvider;
 use Maknz\Slack\Client as Slack;
 use Queue;
+use Jenssegers\Mongodb\Query\Builder;
 use Znck\Transform\Facades\Transform;
 
 class AppServiceProvider extends ServiceProvider
@@ -71,6 +73,17 @@ class AppServiceProvider extends ServiceProvider
         $this->registerFailedJobNotifier();
 
         $this->registerMarketplaceManager();
+
+        $this->app->singleton(MarketplaceManager::class, function () {
+            return new MarketplaceManager($this->app);
+        });
+
+        if (App::environment('local', 'staging')) {
+            Builder::macro('getName', function() {
+                return 'mongodb';
+            });
+        }
+
         $this->registerRepositories();
     }
 
