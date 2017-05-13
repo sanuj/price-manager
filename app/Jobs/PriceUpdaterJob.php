@@ -19,6 +19,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
      * @var string
      */
     public $queue = 'exponent-update';
+
     /**
      * Bundle multiple reprice requests.
      *
