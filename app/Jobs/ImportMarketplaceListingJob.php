@@ -105,7 +105,7 @@ class ImportMarketplaceListingJob
 
     protected function isValidEntry(array $entry)
     {
-        return Validator::make($entry, [
+        $validator = Validator::make($entry, [
             'sku' => 'required|min:1',
             'uid' => 'required|min:1',
             'min_price' => 'required|numeric|min:0',
@@ -116,7 +116,18 @@ class ImportMarketplaceListingJob
             'algorithm:decrement_factor' => 'nullable|numeric|min:0|max:0.25',
             'algorithm:multiplier' => 'nullable|numeric',
             'algorithm:bbs_hours' => 'nullable|numeric',
-        ])->passes();
+        ]);
+
+        if ($this->isRunningInConsole() and $validator->fails()) {
+            $this->debug('Failed Validation.', [
+                'data' => $entry,
+                'failed' => collect($validator->getMessageBag()->getMessages())->map(function ($messages) {
+                    return join(' ', (array)$messages);
+                })->toArray(),
+            ]);
+        }
+
+        return $validator->passes();
     }
 
     protected function map(array $entry, array $header)
@@ -261,5 +272,9 @@ class ImportMarketplaceListingJob
         Log::debug(
             self::class." Company({$this->company->id}).Marketplace({$this->marketplace->id})::".$message, $payload
         );
+
+        if ($this->isRunningInConsole()) {
+            dump($message, $payload);
+        }
     }
 }
