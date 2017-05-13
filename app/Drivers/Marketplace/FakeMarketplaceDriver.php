@@ -92,4 +92,14 @@ class FakeMarketplaceDriver implements MarketplaceDriverContract
     {
         return $this;
     }
+
+    /**
+     * Rules to validate marketplace credentials.
+     *
+     * @return array
+     */
+    public function getCredentialRules(): array
+    {
+        return [];
+    }
 }
