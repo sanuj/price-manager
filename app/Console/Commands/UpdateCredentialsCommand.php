@@ -58,6 +58,7 @@ class UpdateCredentialsCommand extends Command
 
         $current = $company->credentialsFor($marketplace);
 
+        $this->info('Company: '.$company->name);
         if (!is_null($current)) {
             $this->info('Current Values:');
             dump($current->credentials);
