@@ -424,4 +424,35 @@ FEED;
 
         return $this;
     }
+
+    /**
+     * Rules to validate marketplace credentials.
+     *
+     * @return array
+     */
+    public function getCredentialRules(): array
+    {
+        return [
+            'SellerId' => [
+                'description' => 'Amazon Seller ID',
+                'rule' => 'required',
+            ],
+
+            'AWSAccessKeyId' => [
+                'description' => 'Amazon Access Key ID',
+                'rule' => 'required',
+            ],
+
+            'SecretKey' => [
+                'description' => 'Amazon Secret Key',
+                'rule' => 'required',
+            ],
+
+            'MarketplaceId' => [
+                'description' => 'Amazon India Marketplace ID',
+                'rule' => 'required',
+                'default' => 'A21TJRUUN4KGV',
+            ],
+        ];
+    }
 }

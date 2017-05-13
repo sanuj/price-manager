@@ -6,6 +6,12 @@ use Illuminate\Support\Collection;
 interface MarketplaceDriverContract
 {
     /**
+     * Rules to validate marketplace credentials.
+     *
+     * @return array
+     */
+    public function getCredentialRules(): array;
+    /**
      * Get price & meta from marketplace API for owner's listing.
      *
      * @param Collection|\App\MarketplaceListing[] $listings
