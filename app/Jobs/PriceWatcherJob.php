@@ -44,6 +44,8 @@ class PriceWatcherJob extends SelfSchedulingJob
             return;
         }
 
+        $this->debug('Watching', $listings->pluck('uid', 'id')->toArray());
+
         $api = $this->manager->driver($this->marketplace->name);
         $api->use($this->company->credentialsFor($this->marketplace));
 
