@@ -6,11 +6,12 @@ use App\Company;
 use App\CompanyProduct;
 use App\Marketplace;
 use App\MarketplaceListing;
-use App\User;
 use Auth;
+use DB;
 use Exception;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Log;
 use Validator;
 
 class ImportMarketplaceListingJob
@@ -49,19 +50,13 @@ class ImportMarketplaceListingJob
 
     public function handle()
     {
-        if (!is_null($this->user)) {
-            Auth::login($this->user);
-        }
+        $this->authenticate();
 
-        $entries = array_map('str_getcsv', file($this->filename));
-
-        $this->validateCSV($entries);
-
-        $header = array_shift($entries);
-
-        $this->validateHeader($header);
+        list($entries, $header) = $this->load();
 
         $invalid = [];
+
+        DB::beginTransaction();
 
         foreach ($entries as $entry) {
             $entry = $this->map($entry, $header);
@@ -72,6 +67,19 @@ class ImportMarketplaceListingJob
                 $invalid[] = $entry;
             }
         }
+
+        if (count($invalid)) {
+            if ($this->isRunningInConsole()) {
+                $this->dumpFailed($header, $invalid);
+            } else {
+                DB::rollBack();
+
+                $this->debug('Invalid entries in file: '.$this->filename, $invalid);
+                throw new Exception('Invalid entries in CSV');
+            }
+        }
+
+        DB::commit();
     }
 
     protected function validateCSV($entries)
@@ -144,7 +152,7 @@ class ImportMarketplaceListingJob
      * @param string $sku
      *
      * @return \App\CompanyProduct
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getProduct(string $sku): CompanyProduct
     {
@@ -188,5 +196,61 @@ class ImportMarketplaceListingJob
         return collect($entry)->filter(function ($_, $key) use ($prefix) {
             return Str::startsWith($key, $prefix.':');
         })->toArray();
+    }
+
+    /**
+     * @param $header
+     * @param $invalid
+     */
+    protected function dumpFailed(array $header, array $invalid)
+    {
+        array_unshift($invalid, $header);
+        $filename = storage_path("{$this->company->id}-{$this->marketplace->name}.".time().'.csv');
+        $fp = fopen($filename, 'w');
+
+        foreach ($invalid as $row) {
+            fputcsv($fp, $row);
+        }
+
+        fclose($fp);
+
+        echo 'Failed entries stored in: '.$filename.PHP_EOL;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isRunningInConsole(): bool
+    {
+        return is_null($this->user);
+    }
+
+    protected function authenticate(): void
+    {
+        if (!is_null($this->user)) {
+            Auth::login($this->user);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    protected function load(): array
+    {
+        $entries = array_map('str_getcsv', file($this->filename));
+
+        $this->validateCSV($entries);
+
+        $header = array_shift($entries);
+
+        $this->validateHeader($header);
+
+        return [$entries, $header];
+    }
+
+    protected function debug(string $message, $payload = [])
+    {
+        Log::debug(self::class." Company({$this->company->id}).Marketplace({$this->marketplace->id})::".$message,
+            $payload);
     }
 }
