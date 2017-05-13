@@ -12,7 +12,7 @@ class StopRepricingService extends Command
      *
      * @var string
      */
-    protected $signature = 'repricer:stop';
+    protected $signature = 'exponent:stop';
 
     /**
      * The console command description.

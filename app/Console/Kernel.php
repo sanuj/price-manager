@@ -3,7 +3,7 @@
 namespace App\Console;
 
 use App\Console\Commands\{
-    StartRepricingService, StopRepricingService
+    ImportMarketplaceListingCommand, StartRepricingService, StopRepricingService
 };
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         StartRepricingService::class,
         StopRepricingService::class,
+        ImportMarketplaceListingCommand::class,
     ];
 
     /**
