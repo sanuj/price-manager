@@ -113,7 +113,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
     {
         $selector = $this->getSelector($listing);
         $algorithm = $selector->algorithm($listing);
-        $price = $algorithm->predict($listing);
+        $price = round($algorithm->predict($listing));
 
         with(new PriceHistory([
             'marketplace_listing_id' => $listing->getKey(),
