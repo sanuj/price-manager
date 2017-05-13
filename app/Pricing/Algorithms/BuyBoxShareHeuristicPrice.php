@@ -46,7 +46,7 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
             }
         }
 
-        Log::debug('Price Update for listing id ('.$listing->id.'): bbs: '.$buy_box_share
+        Log::debug(get_class($this).'::MarketplaceListingId('.$listing->id.') - bbs: '.$buy_box_share
             .', predicted_price: '.$predicted_price, $listing->repricing_algorithm['params'] ?? []);
 
         return min($max_price, max($predicted_price, $min_price));
@@ -82,6 +82,10 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
             return (bool)$value->offers[0]['has_buy_box'] === true;
         });
 
+        Log::debug(get_class($this).'::MarketplaceListingId('.$marketplace_listing->id.') - snapshots with buybox: '
+            . $snapshots_with_buybox->count().', snapshots with offers: ' . $snapshots_with_offers->count()
+            . ', num of hours: ' . $num_hours);
+
         return ($snapshots_with_buybox->count() * 1.0) / $snapshots_with_offers->count();
     }
 
@@ -91,4 +95,5 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
                        ->where('updated_at', '>', Carbon::now()->subMinutes($num_hours*60))
                        ->get();
     }
+
 }
