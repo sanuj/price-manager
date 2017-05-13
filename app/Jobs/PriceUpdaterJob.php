@@ -95,7 +95,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
                 'old' => $listing->getOriginal('marketplace_selling_price'),
                 'new' => $listing->marketplace_selling_price,
             ];
-        });
+        })->toArray();
 
         if (config('pricing.should_update')) {
             $api->setPrice($listings);
@@ -160,11 +160,15 @@ class PriceUpdaterJob extends SelfSchedulingJob
 
         resolve(Slack::class)
             ->attach([
-                'ASIN' => $listing->uid,
-                'SKU' => $listing->companyProduct->sku,
-                'reason' => get_class($exception),
-                'company' => $this->company->getKey(),
-                'marketplace' => $this->marketplace->getKey(),
+                'fallback' => 'Reason: '.get_class($exception),
+                'text' => 'Reason: '.get_class($exception),
+                'color' => 'danger',
+                'fields' => [
+                    ['title' => 'Marketplace Listing', 'value' => $listing->getKey(), 'short' => true],
+                    ['title' => 'ASIN', 'value' => $listing->uid, 'short' => true],
+                    ['title' => 'SKU', 'value' => $listing->companyProduct->sku, 'short' => true],
+                    ['title' => 'Company', 'value' => $this->company->getKey(), 'short' => true],
+                ],
             ])
             ->send('Disabling listing on '.$this->marketplace->name.' for '.$this->company->name.'.');
 
