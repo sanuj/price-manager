@@ -17,7 +17,7 @@ class BuyBoxShareHeuristicPriceTest extends TestCase
     public function test_it_can_calculate_buy_box_share() {
         $marketplace_listing = $this->getMarketplaceListing();
         $buy_box_share = $this->algorithm(true, $this->getSnapshots($marketplace_listing->id))
-            ->getBuyBoxShare($marketplace_listing);
+            ->getBuyBoxShare($marketplace_listing, 3);
         $this->assertLessThanOrEqual(1, $buy_box_share);
         $this->assertGreaterThanOrEqual(0, $buy_box_share);
     }
@@ -26,14 +26,14 @@ class BuyBoxShareHeuristicPriceTest extends TestCase
         $this->expectException(NoSnapshotsAvailableException::class);
         $marketplace_listing = $this->getMarketplaceListing();
         $this->algorithm(true, $this->getSnapshots($marketplace_listing->id, [], [], 0))
-            ->getBuyBoxShare($marketplace_listing);
+            ->getBuyBoxShare($marketplace_listing, 3);
     }
 
     public function test_it_can_handle_snapshots_without_any_offers() {
         $this->expectException(NoSnapshotsWithOffersException::class);
         $marketplace_listing = $this->getMarketplaceListing();
         $this->algorithm(true, $this->getSnapshots($marketplace_listing->id, []))
-            ->getBuyBoxShare($marketplace_listing);
+            ->getBuyBoxShare($marketplace_listing, 3);
     }
 
     public function test_it_can_increment_price() {
@@ -46,8 +46,9 @@ class BuyBoxShareHeuristicPriceTest extends TestCase
         $selling_price = 800;
         $multiplier = 4;
         $increment_factor = 0.01;
+        $bbs_hours = 3;
         $predicted_price = $this->algorithm()->predict($this->getMarketplaceListing(100, $selling_price, 750, 900, [
-            'params' => compact('increment_factor', 'multiplier')
+            'params' => compact('increment_factor', 'multiplier', 'bbs_hours')
         ]));
         $this->assertEquals(($multiplier*$increment_factor+1)*$selling_price, $predicted_price);
     }
@@ -95,10 +96,11 @@ class BuyBoxShareHeuristicPriceTest extends TestCase
     public function algorithm($mock_buy_box_snapshots = false, $snapshots = null) {
         return $mock_buy_box_snapshots ?
             $this->mockMethod('buyBoxSnapshots', $snapshots ?? $this->getSnapshots())
-            : $this->mockMethod('getBuyBoxShare', function (MarketplaceListing $marketplace_listing) {
-                switch($marketplace_listing->id) {
+            : $this->mockMethod('getBuyBoxShare', function (MarketplaceListing $marketplace_listing, $bbs_hours) {
+                switch($marketplace_listing->id*$bbs_hours) {
                     case 1: return 0.1;
                     case 100: return 0.8;
+                    case 300: return 0.8;
                     default: return 0.5;
                 }
             });
