@@ -46,7 +46,7 @@ class StartRepricingService extends Command
 
     public function handle()
     {
-        $this->call('repricer:stop');
+        $this->call('exponent:stop');
         $total = Company::count();
         $count = 0;
         $this->line('Starting exponent price watcher & updater for '.$total.' companies.');
