@@ -110,12 +110,12 @@ class ImportMarketplaceListingJob
             'uid' => 'required|min:1',
             'min_price' => 'required|numeric|min:0',
             'max_price' => 'required|numeric|min:0',
-            'status' => 'optional|in:0,1',
-            'algorithm:selector' => 'optional|in:'.join(',', array_keys(config('pricing.selectors'))),
-            'algorithm:increment_factor' => 'optional|numeric|min:0|max:0.25',
-            'algorithm:decrement_factor' => 'optional|numeric|min:0|max:0.25',
-            'algorithm:multiplier' => 'optional|numeric',
-            'algorithm:bbs_hours' => 'optional|numeric',
+            'status' => 'nullable|in:0,1',
+            'algorithm:selector' => 'nullable|in:'.join(',', array_keys(config('pricing.selectors'))),
+            'algorithm:increment_factor' => 'nullable|numeric|min:0|max:0.25',
+            'algorithm:decrement_factor' => 'nullable|numeric|min:0|max:0.25',
+            'algorithm:multiplier' => 'nullable|numeric',
+            'algorithm:bbs_hours' => 'nullable|numeric',
         ])->passes();
     }
 
@@ -132,14 +132,22 @@ class ImportMarketplaceListingJob
 
     protected function import(array $entry)
     {
+        $this->debug('IMPORT', $entry);
         $product = $this->getProduct($entry['sku']);
         $listing = $this->getListing($product);
 
         $listing->marketplace_min_price = $entry['min_price'];
         $listing->marketplace_max_price = $entry['max_price'];
+        $listing->min_price = $listing->marketplace_min_price * 100;
+        $listing->max_price = $listing->marketplace_max_price * 100;
+        $listing->marketplace_selling_price = $listing->marketplace_cost_price = 0.0;
+        $listing->selling_price = $listing->cost_price = 0;
         $listing->uid = $entry['uid'];
         $listing->status = $entry['status'] ?? $listing->status ?? 0;
-        $listing->repricing_algorithm = array_merge($listing->repricing_algorithm, $this->collect($entry, 'algorithm'));
+        $listing->repricing_algorithm = array_merge(
+            (array)$listing->repricing_algorithm,
+            $this->collect($entry, 'algorithm')
+        );
 
         if (!$listing->save()) {
             throw new Exception('Could not create a listing.');
@@ -250,7 +258,8 @@ class ImportMarketplaceListingJob
 
     protected function debug(string $message, $payload = [])
     {
-        Log::debug(self::class." Company({$this->company->id}).Marketplace({$this->marketplace->id})::".$message,
-            $payload);
+        Log::debug(
+            self::class." Company({$this->company->id}).Marketplace({$this->marketplace->id})::".$message, $payload
+        );
     }
 }

@@ -33,7 +33,7 @@ class ImportMarketplaceListingCommand extends Command
      */
     public function handle()
     {
-        $company = Company::firstOrFail($this->argument('company'));
+        $company = Company::whereId($this->argument('company'))->firstOrFail();
         $marketplace = Marketplace::whereName($this->argument('marketplace'))->firstOrFail();
         $filename = $this->resolve($this->argument('filename'));
 
@@ -41,12 +41,13 @@ class ImportMarketplaceListingCommand extends Command
             throw new Exception($filename.' not found.');
         }
 
+        $this->line('Start import.');
         dispatch(new ImportMarketplaceListingJob($company, $marketplace, $filename));
     }
 
     protected function resolve(string $filename)
     {
-        if (Str::startsWith($filename, '/')) {
+        if (Str::startsWith($filename, ['~', '/'])) {
             return realpath($filename);
         }
 
