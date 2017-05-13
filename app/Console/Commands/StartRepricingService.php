@@ -5,11 +5,9 @@ namespace App\Console\Commands;
 use App\Company;
 use App\Jobs\PriceUpdaterJob;
 use App\Jobs\PriceWatcherJob;
-use App\Managers\MarketplaceManager;
 use App\Marketplace;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Collection;
-use Queue;
 
 class StartRepricingService extends Command
 {
@@ -18,7 +16,7 @@ class StartRepricingService extends Command
      *
      * @var string
      */
-    protected $signature = 'repricer:start';
+    protected $signature = 'exponent:start';
 
     /**
      * The console command description.
