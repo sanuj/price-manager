@@ -84,6 +84,10 @@ class PriceUpdaterJob extends SelfSchedulingJob
         $listings = $listings->map(function (MarketplaceListing $listing) {
             return $this->reprice($listing);
         })->filter(function (MarketplaceListing $listing) {
+            if($listing->getOriginal('status') === MarketplaceListing::STATUS_ACTIVE and
+                $listing->status === MarketplaceListing::STATUS_NO_OFFERS) {
+                $listing->save();
+            }
             return $listing->status === MarketplaceListing::STATUS_ACTIVE;
         });
 
