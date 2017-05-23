@@ -14,10 +14,11 @@ use Illuminate\Support\Facades\Log;
 
 class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
 {
-    private $min_price = 0;
-    private $max_price = 0;
-    private $selling_price = 0;
-    private $bbs_hours = 1;
+    protected $min_price = 0;
+    protected $max_price = 0;
+    protected $selling_price = 0;
+    protected $bbs_hours = 1;
+    protected $bbs = null;
 
     public function predict(MarketplaceListing $listing): float
     {
@@ -27,22 +28,17 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
         $decrement_factor = $listing->repricing_algorithm['params']['decrement_factor'] ?? 0.05;
         $multiplier = $listing->repricing_algorithm['params']['multiplier'] ?? 2;
 
-        $buy_box_share = $this->getBuyBoxShare($listing, $this->bbs_hours);
-
-        if ($this->buyBoxShareIsHigh($buy_box_share)) {
+        if ($this->buyBoxShareIsHigh()) {
             $predicted_price = $this->selling_price + $multiplier * $increment_factor * $this->selling_price;
         } else {
-            if ($this->buyBoxShareIsLow($buy_box_share)) {
+            if ($this->buyBoxShareIsLow()) {
                 $predicted_price = $this->selling_price - $decrement_factor * $this->selling_price;
             } else {
                 $predicted_price = $this->selling_price + $increment_factor * $this->selling_price;
             }
         }
 
-        Log::debug(get_class($this).'::MarketplaceListingId('.$listing->id.') - bbs: '.$buy_box_share
-            .', predicted_price: '.$predicted_price, $listing->repricing_algorithm['params'] ?? []);
-
-        return min($this->max_price, max($predicted_price, $this->min_price));
+        return $this->tamePredictedPrice($listing, $predicted_price);
     }
 
     protected function init(MarketplaceListing $listing)
@@ -52,6 +48,8 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
         $this->selling_price = $listing->marketplace_selling_price;
         $this->bbs_hours = $listing->repricing_algorithm['params']['bbs_hours'] ?? $this->bbs_hours;
         $this->validateListing($listing);
+
+        $this->bbs = $this->getBuyBoxShare($listing, $this->bbs_hours);
     }
 
     protected function validateListing(MarketplaceListing $listing)
@@ -69,14 +67,14 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
         }
     }
 
-    protected function buyBoxShareIsHigh($buy_box_share)
+    protected function buyBoxShareIsHigh()
     {
-        return $buy_box_share > 0.6;
+        return $this->bbs > 0.6;
     }
 
-    protected function buyBoxShareIsLow($buy_box_share)
+    protected function buyBoxShareIsLow()
     {
-        return $buy_box_share < 0.3;
+        return $this->bbs < 0.3;
     }
 
     public function getBuyBoxShare(MarketplaceListing $marketplace_listing, $num_hours)
@@ -111,6 +109,13 @@ class BuyBoxShareHeuristicPrice implements PricingAlgorithmContract
         return Snapshot::where('marketplace_listing_id', $marketplace_listing_id)
                        ->where('updated_at', '>', Carbon::now()->subMinutes($num_hours*60))
                        ->get();
+    }
+
+    protected function tamePredictedPrice($listing, $predicted_price) {
+        Log::debug(get_class($this).'::MarketplaceListingId('.$listing->id.') - bbs: '.$this->bbs
+            .', predicted_price: '.$predicted_price, $listing->repricing_algorithm['params'] ?? []);
+
+        return min($this->max_price, max($predicted_price, $this->min_price));
     }
 
 }
