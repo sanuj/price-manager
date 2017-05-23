@@ -20,7 +20,7 @@ export default {
 
   watch: {
     selected_listing_id (id) {
-      // Fetch Snapshots/PriceHistory and update lines & labels.
+      // TODO: Fetch Snapshots/PriceHistory and update lines & labels.
     }
   },
 
