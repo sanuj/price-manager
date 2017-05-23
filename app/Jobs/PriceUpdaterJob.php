@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Company;
 use App\Exceptions\MarketplaceListingException;
+use App\Exceptions\NoSnapshotsWithOffersException;
 use App\Exceptions\ThrottleLimitReachedException;
 use App\Managers\MarketplaceManager;
 use App\Marketplace;
@@ -114,7 +115,15 @@ class PriceUpdaterJob extends SelfSchedulingJob
     {
         $selector = $this->getSelector($listing);
         $algorithm = $selector->algorithm($listing);
-        $price = round($algorithm->predict($listing));
+        try {
+            $price = round($algorithm->predict($listing));
+        }
+        catch(NoSnapshotsWithOffersException $e) {
+            $this->debug('No offers present for listing id '.$listing->getKey());
+            $listing->status = MarketplaceListing::STATUS_NO_OFFERS;
+            return $listing;
+        }
+        $listing->status = MarketplaceListing::STATUS_ACTIVE; // Offers are present.
 
         with(new PriceHistory([
             'marketplace_listing_id' => $listing->getKey(),
@@ -157,7 +166,7 @@ class PriceUpdaterJob extends SelfSchedulingJob
     protected function disableAndReschedule(MarketplaceListingException $exception)
     {
         $listing = $exception->getMarketplaceListing();
-        $listing->update(['status' => 0]);
+        $listing->update(['status' => MarketplaceListing::STATUS_INACTIVE]);
 
         resolve(Slack::class)
             ->attach([

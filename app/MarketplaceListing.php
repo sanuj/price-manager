@@ -9,6 +9,8 @@ class MarketplaceListing extends Model
     use Concerns\Revisionable;
 
     const STATUS_INACTIVE = 0;
+    const STATUS_ACTIVE = 1;
+    const STATUS_NO_OFFERS = 2;
 
     protected $fillable = [
         'selling_price',
