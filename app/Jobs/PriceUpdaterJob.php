@@ -83,6 +83,8 @@ class PriceUpdaterJob extends SelfSchedulingJob
         /** @var MarketplaceListing[]|Collection $listings */
         $listings = $listings->map(function (MarketplaceListing $listing) {
             return $this->reprice($listing);
+        })->filter(function (MarketplaceListing $listing) {
+            return $listing->status === MarketplaceListing::STATUS_ACTIVE;
         });
 
         if (!count($listings)) {
