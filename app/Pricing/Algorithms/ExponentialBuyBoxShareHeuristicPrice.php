@@ -35,9 +35,11 @@ class ExponentialBuyBoxShareHeuristicPrice extends BuyBoxShareHeuristicPrice  im
             $last_bbs = 0;
         }
 
-        $listing->repricing_algorithm['params']['increment_exponent'] = $increment_exponent;
-        $listing->repricing_algorithm['params']['decrement_exponent'] = $decrement_exponent;
-        $listing->repricing_algorithm['params']['last_bbs'] = $last_bbs;
+        // $listing->repricing_algorithm['params']['increment_exponent'] = $increment_exponent;
+        // ^ This won't work, so using array_merge_recursive
+        array_merge($listing->repricing_algorithm, [
+            'params' => compact('increment_exponent', 'decrement_exponent', 'last_bbs')
+        ]);
 
         return $this->tamePredictedPrice($listing, $predicted_price);
     }
