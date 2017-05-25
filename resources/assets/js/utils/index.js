@@ -7,7 +7,7 @@ export function zip(...arrays) {
     const n = maxLength()
     const result = []
     while (i < n) {
-      result.push(...kth(i), i)
+      result.push(callback(...kth(i), i))
       ++i
     }
 

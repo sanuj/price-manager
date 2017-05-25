@@ -17,9 +17,6 @@ export default Line.extend({
     labels: {
       type: Array,
       required: true,
-      validator (labels) {
-        return this.lines.length === labels.length
-      },
     },
 
     colors: {
@@ -27,21 +24,14 @@ export default Line.extend({
       default () {
         return this.lines.map(() => randomColor())
       },
-      validator (colors) {
-        return this.lines.length === colors.length
-      },
     },
   },
 
   computed: {
     data () {
       return {
-        labels: this.labels,
-        datasets: zip(this.lines, this.labels, this.colors).map((data, label, backgroundColor) => ({
-          data,
-          label,
-          backgroundColor,
-        }))
+        datasets: zip(this.lines, this.labels, this.colors)
+            .map((data, label, backgroundColor) => ({ data, label, backgroundColor }))
       }
     },
 
