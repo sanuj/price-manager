@@ -3,7 +3,7 @@ import { Line } from 'vue-chartjs'
 
 import { zip } from '../utils'
 
-const randomColor = () => `#${'00000' + Math.floor(Math.random() * 16777215).toString(16)}`.slice(-6)
+const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16)
 
 export default Line.extend({
   name: 'LineChart',
@@ -19,6 +19,11 @@ export default Line.extend({
       required: true,
     },
 
+    xlabels: {
+      type: Array,
+      required: true,
+    },
+
     colors: {
       type: Array,
       default () {
@@ -30,6 +35,7 @@ export default Line.extend({
   computed: {
     data () {
       return {
+        labels: this.xlabels,
         datasets: zip(this.lines, this.labels, this.colors)
             .map((data, label, backgroundColor) => ({ data, label, backgroundColor }))
       }
