@@ -1,6 +1,5 @@
 <script>
-import { Line } from 'vue-chartjs'
-
+import {Line} from 'vue-chartjs'
 import { zip } from '../utils'
 
 const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16)
@@ -9,48 +8,67 @@ export default Line.extend({
   name: 'LineChart',
 
   props: {
-    lines: {
+  	lines: {
       type: Array,
       required: true,
     },
 
-    labels: {
-      type: Array,
-      required: true,
+    linesBorderColors: {
+    	type: Array,
+    	default () {
+    		return this.lines.map(() => randomColor())
+    	}
     },
 
-    xlabels: {
-      type: Array,
-      required: true,
+    linesBorderWidth: {
+    	type: Array,
+    	default() {
+    		return Array(this.lines.length-1).fill(1)
+    	}
     },
 
-    colors: {
-      type: Array,
-      default () {
-        return this.lines.map(() => randomColor())
-      },
+    linesBackgroundColor: {
+    	type: Array,
+    	default() {
+    		return Array(this.lines.length).fill('transparent')
+    	}
     },
+
+    lineLabels: {
+    	type: Array,
+    	required: true,
+    },
+
+    lineX: {
+    	type: Array,
+    	required: true,
+    }
   },
 
   computed: {
-    data () {
+  	data () {
       return {
-        labels: this.xlabels,
-        datasets: zip(this.lines, this.labels, this.colors)
-            .map((data, label, backgroundColor) => ({ data, label, backgroundColor }))
+        labels: this.lineX,
+        datasets: zip(this.lines, this.lineLabels, this.linesBorderWidth, this.linesBorderColors, this.linesBackgroundColor).
+      	  map((data, label, borderWidth, borderColor, backgroundColor) =>
+      	  	({data, label, borderWidth, borderColor, backgroundColor}))
       }
-    },
+	},
 
-    options () {
-      return {
-        responsive: true,
-        maintainAspectRatio: true,
-      }
-    }
+	options () {
+		return {responsive: true, maintainAspectRatio: false}
+	}
   },
 
   mounted () {
     this.renderChart(this.data, this.options)
+  },
+
+  watch: {
+    data: function () {
+      this._chart.destroy()
+      this.renderChart(this.data, this.options)
+    }
   }
 })
 </script>
