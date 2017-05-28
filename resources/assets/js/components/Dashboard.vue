@@ -5,7 +5,7 @@
       <div class="row">
         <div class="col-2">
           Enter ASIN / SKU:
-          <input v-model="selected_listing_id" placeholder="ASIN / SKU">
+          <input v-model="sku_uid_id" placeholder="ASIN / SKU">
         </div>
         <div class="col-2">Start Date:<datepicker v-model="start_date" placeholder="Start Date"></datepicker></div>
         <div class="col-2">End Date:<datepicker v-model="end_date" placeholder="End Date"></datepicker></div>
@@ -70,11 +70,10 @@ export default {
   name: 'Dashboard',
 
   data: () => ({
-    selected_listing_id: null, // Selected listing (ASIN/UID)
+    sku_uid_id: null, // Selected listing (ASIN/UID)
     show_competitors: null,
     start_date: null,
     end_date: null,
-    listings: [], // List of watched listings
     
     lines: [[40, 39, 10, 40, 39, 80, 40], [60, 55, 32, 10, 2, 12, 53]],
     lineX: ['01-05', '02-05', '03-05', '04-05', '05-05', '06-05', '07-05'],
@@ -126,7 +125,7 @@ export default {
     plot () {
       axios.get('/analytics/snapshots', {
         params: {
-          marketplace_listing_id: this.selected_listing_id,
+          sku_uid_id: this.sku_uid_id,
           // start_date: '2017-05-01',
           start_date: moment(this.start_date).format('YYYY-MM-DD'),
           end_date: moment(this.end_date).format('YYYY-MM-DD'),
