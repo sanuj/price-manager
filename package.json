@@ -31,6 +31,8 @@
   "dependencies": {
     "babel-preset-stage-2": "^6.22.0",
     "chart.js": "^2.5.0",
-    "vue-chartjs": "^2.6.3"
+    "moment": "^2.18.1",
+    "vue-chartjs": "^2.6.3",
+    "vuejs-datepicker": "^0.7.12"
   }
 }
