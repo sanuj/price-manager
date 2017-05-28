@@ -28,7 +28,7 @@ export default Bar.extend({
         datasets: [
           {
             label: this.barLabels[0],
-            backgroundColor: '#f87979',
+            backgroundColor: '#1EBC30',
             data: this.barOne
           }
         ]

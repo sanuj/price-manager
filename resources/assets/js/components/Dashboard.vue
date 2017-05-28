@@ -1,15 +1,26 @@
 <template>
   <div class="custom-container">
     <h2>Price History and BuyBox Share</h2>
-    <p>
-      Enter listing id:
-      <input v-model="selected_listing_id">
-      <button v-on:click="plot">Plot</button>
-      <input type="checkbox" id="show-competitors" v-model="show_competitors">
-      <label for="show-competitors">Show Competitors</label>
-    </p>
-    <line-chart v-bind="{ lines, lineLabels, lineX, linesBorderColors, linesBorderWidth, linesBackgroundColor }"></line-chart>
-    <bar-chart v-bind="{ barOne, barLabels, barX }"></bar-chart>
+    <div class="container">
+      <div class="row">
+        <div class="col-2">
+          Enter ASIN / SKU:
+          <input v-model="selected_listing_id" placeholder="ASIN / SKU">
+        </div>
+        <div class="col-2">Start Date:<datepicker v-model="start_date" placeholder="Start Date"></datepicker></div>
+        <div class="col-2">End Date:<datepicker v-model="end_date" placeholder="End Date"></datepicker></div>
+        <div class="col-2"><button v-on:click="plot" class="btn btn-outline-primary plot-btn">Plot</button></div>
+        <div class="col">
+          <label class="custom-control custom-checkbox show-competitors">
+            <input type="checkbox" class="custom-control-input" v-model="show_competitors">
+            <span class="custom-control-indicator"></span>
+            <span class="custom-control-description">Show Competitors</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <line-chart v-bind="{ lines, lineLabels, lineX, linesBorderColors, linesBorderWidth, linesBackgroundColor }" :height="250"></line-chart>
+    <bar-chart v-bind="{ barOne, barLabels, barX }" :height="250"></bar-chart>
   </div>
 </template>
 
@@ -17,11 +28,13 @@
 import LineChart from './LineChart.vue'
 import BarChart from './BarChart.vue'
 import axios from 'axios'
+import moment from 'moment'
+
+import Datepicker from 'vuejs-datepicker'
 
 const randomColor = () => '#' + Math.floor(Math.random() * 16777215).toString(16)
 const keys = obj => Object.keys(obj)
 const values = obj => Object.values(obj)
-const removeTimestampFromDate = dateTime => dateTime.split(' ')[0]
 const padWithZero = array => {
   let maxLen = Math.max(...array.map(row => row.length))
   return array.map(row => row.concat(Array(maxLen-row.length).fill(0)))
@@ -59,26 +72,29 @@ export default {
   data: () => ({
     selected_listing_id: null, // Selected listing (ASIN/UID)
     show_competitors: null,
+    start_date: null,
+    end_date: null,
     listings: [], // List of watched listings
     
-    lines: [[40, 39, 10, 40, 39, 80, 40],[60, 55, 32, 10, 2, 12, 53]],
-    lineX: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+    lines: [[40, 39, 10, 40, 39, 80, 40], [60, 55, 32, 10, 2, 12, 53]],
+    lineX: ['01-05', '02-05', '03-05', '04-05', '05-05', '06-05', '07-05'],
     lineLabels: ['Your Price', 'Average Price'],
-    linesBorderColors: ['#FC2525', '#05CBE1'],
+    linesBorderColors: ['#2ECC40', '#05CBE1'],
     linesBorderWidth: [3, 1],
     linesBackgroundColor: ['transparent', 'transparent'],
 
     barOne: [10, 20, 50, 30, 40, 100, 80],
     barLabels: ['BuyBox Share'],
-    barX: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+    barX: ['01-05', '02-05', '03-05', '04-05', '05-05', '06-05', '07-05'],
 
     snapsArray: null,
   }),
 
   watch: {
     show_competitors (state) {
-      this.updatePriceChart()
-    }
+      if(this.snapsArray)
+        this.updatePriceChart()
+    },
   },
 
   methods: {
@@ -92,9 +108,9 @@ export default {
       else
         lines = lines.concat([avgPrices(compPriceSnaps.map(avgPrices))])
       
-      this.lineX = keys(snapsArray).map(removeTimestampFromDate)
+      this.lineX = keys(snapsArray).map(dateTime => moment(dateTime).format('DD-MM'))
       this.lines = lines
-      this.linesBorderColors = ['#FC2525', '#05CBE1'].concat(this.lines.map(() => randomColor()))
+      this.linesBorderColors = ['#2ECC40', '#05CBE1'].concat(this.lines.map(() => randomColor()))
         .slice(0, this.lines.length)
       this.linesBorderWidth = [3].concat(Array(this.lines.length-1).fill(1))
       this.linesBackgroundColor = Array(this.lines.length).fill('transparent')
@@ -111,8 +127,10 @@ export default {
       axios.get('/analytics/snapshots', {
         params: {
           marketplace_listing_id: this.selected_listing_id,
-          start_date: '2017-05-01',
-          end_date: '2017-05-20',
+          // start_date: '2017-05-01',
+          start_date: moment(this.start_date).format('YYYY-MM-DD'),
+          end_date: moment(this.end_date).format('YYYY-MM-DD'),
+          // end_date: '2017-05-20',
         }
       }).then(response => response.data).then (snapsArray => {
         this.snapsArray = snapsArray
@@ -124,14 +142,29 @@ export default {
 
   components: {
     LineChart,
-    BarChart
+    BarChart,
+    Datepicker
   }
 }
 </script>
 
 <style>
   .custom-container {
-    max-width: 1400px;
-    margin:  0 auto;
+    /*max-width: 1400px;*/
+    /*margin:  100px;*/
+    padding: 10px 50px 50px 50px;
+    background: #FFFFFF;
+  }
+  .inline datepicker {
+    display: inline;
+  }
+  .container {
+    margin: 20px 0 25px 0;
+  }
+  .plot-btn {
+    margin: 10px 0 0 30px;
+  }
+  .show-competitors {
+    margin: 15px 0 0 20px;
   }
 </style>
