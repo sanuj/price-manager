@@ -48,5 +48,7 @@
         @yield('content')
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"></script>
+    <script src="//unpkg.com/tether@1.4.0/dist/js/tether.min.js"></script>
+    <script src="//unpkg.com/jquery@3.1.1/dist/jquery.min.js"></script>
+    <script src="//unpkg.com/bootstrap@4.0.0-alpha.6/dist/js/bootstrap.min.js"></script>
 @endsection
