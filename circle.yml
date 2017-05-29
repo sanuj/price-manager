@@ -33,7 +33,7 @@ test:
 
 deployment:
   production:
-    tag: /release-.*/
+    branch: master
     owner: sanuj
     commands:
       - ./scripts/deploy.sh
