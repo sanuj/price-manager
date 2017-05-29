@@ -113,8 +113,12 @@ html {
   font-size: 14px;
 }
 
+.bg-white {
+  background: white;
+}
+
 .bg-brand {
-  background: #d13e00;
+  background: $brand-primary;
 }
 
 .navbar {

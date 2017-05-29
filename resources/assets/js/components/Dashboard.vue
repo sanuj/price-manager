@@ -152,7 +152,6 @@ export default {
     /*max-width: 1400px;*/
     /*margin:  100px;*/
     padding: 10px 50px 50px 50px;
-    background: #FFFFFF;
   }
   .inline datepicker {
     display: inline;

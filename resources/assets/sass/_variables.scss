@@ -1,10 +1,12 @@
-$enable-rounded: false;
+$enable-rounded: true;
 
 // Body
-$body-bg: rgba(255, 77, 0, 0.05);
+// $body-bg: rgba(255, 77, 0, 0.05);
+$body-bg: rgba(255, 255, 255, 0.05);
 
 // Borders
-$border-color: rgba(255, 76, 0, 0.15);
+// $border-color: rgba(255, 76, 0, 0.15);
+$border-color: rgba(0, 126, 229, 0.15);
 $list-group-border: $border-color;
 $navbar-default-border: $border-color;
 $panel-default-border: $border-color;
@@ -12,7 +14,8 @@ $panel-inner-border: $border-color;
 $card-border-color: $border-color;
 
 // Brands
-$brand-primary: #d13e00;
+// $brand-primary: #d13e00;
+$brand-primary: #007ee5;
 $brand-info: #bde7ff;
 $brand-success: #1ad486;
 $brand-warning: #cbb956;
