@@ -8,6 +8,8 @@ yarn run production;
 php artisan clear-compiled;
 rm -rf node_modules storage;
 
+SHOULD_RESTART_WORKERS=$(git diff --name-only HEAD^1 | grep -c '.php')
+
 # Deployment
 # 1. Prepare
 release=$(date +%Y%m%d%H%m%S)
@@ -34,7 +36,9 @@ ssh ${APP_SERVER_DSN} 'bash -se' << REMOTE_SCRIPT
   ln -nfs ~/exponent/releases/20170529173309 ~/exponent/current;
 
   # Restart services.
-  sudo supervisorctl restart all;
+  if [[ ${SHOULD_RESTART_WORKERS} -ge 0 ]] then
+    sudo supervisorctl restart all;
+  fi;
 
   # Delete old release
   cd ~/exponent/releases;
