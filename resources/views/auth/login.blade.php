@@ -5,7 +5,7 @@
         <div class="row">
             <div class="col-md-8 offset-md-2 my-3">
                 <div class="card">
-                    <h4 class="card-header bg-white">Login</h4>
+                    <h4 class="card-header">Login</h4>
                     <div class="card-block row">
                         <form class="form-horizontal col-12 col-lg-8 offset-lg-2" role="form" method="POST"
                               action="{{ route('login') }}">

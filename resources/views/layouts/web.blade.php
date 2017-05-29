@@ -2,13 +2,13 @@
 
 @section('body')
     <div id="app">
-        <nav class="navbar navbar-toggleable-md sticky-top navbar-light bg-white bordered">
+        <nav class="navbar navbar-toggleable-md sticky-top navbar-light bg-brand bordered">
             <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
                     data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                     aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand text-white" href="/">
                 <!--<img src="./assets/logo.svg" alt="Exponent" height="33">-->
                 Exponent
             </a>
@@ -16,8 +16,8 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ml-auto">
                     @if (Auth::guest())
-                        <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Register</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="{{ route('login') }}">Login</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="{{ route('register') }}">Register</a></li>
                     @else
                         <li class="nav-item dropdown">
                             <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown" role="button"

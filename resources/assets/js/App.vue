@@ -1,12 +1,12 @@
 <template lang="html">
 <div class="app">
-  <nav class="navbar navbar-toggleable-md sticky-top navbar-light bg-white bordered">
+  <nav class="navbar navbar-toggleable-md sticky-top navbar-light bg-brand bordered">
     <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
             aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"/>
     </button>
-    <a class="navbar-brand" href="/">
+    <a class="navbar-brand text-white" href="/">
       <!--<img src="./assets/logo.svg" alt="Exponent" height="33">-->
       Exponent
     </a>
@@ -14,19 +14,19 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav flex-auto">
         <li class="nav-item">
-          <router-link to="/dashboard" class="nav-link" active-class="active">Dashboard</router-link>
+          <router-link to="/dashboard" class="nav-link text-white" active-class="active">Dashboard</router-link>
         </li>
 
         <li class="nav-item">
-          <router-link to="/listings" class="nav-link" active-class="active">Listing</router-link>
+          <router-link to="/listings" class="nav-link text-white" active-class="active">Listing</router-link>
         </li>
 
         <li class="nav-item">
-          <router-link to="/activity" class="nav-link" active-class="active">Activity</router-link>
+          <router-link to="/activity" class="nav-link text-white" active-class="active">Activity</router-link>
         </li>
 
         <li class="nav-item">
-          <router-link to="/upload" class="nav-link" active-class="active">Upload</router-link>
+          <router-link to="/upload" class="nav-link text-white" active-class="active">Upload</router-link>
         </li>
 
         <li class="nav-item flex-auto text-right">
@@ -37,7 +37,7 @@
                        :suggestions="options"
                        class="ml-auto global-search" autofocus/>
           </transition>
-          <InputButton v-if="!searching" theme="link" class="global-search-toggle"
+          <InputButton v-if="!searching" theme="link" class="global-search-toggle text-white"
                        @click.native="searching = true">
             <icon type="search"/>
           </InputButton>
@@ -46,7 +46,7 @@
 
       <ul class="navbar-nav ml-auto">
         <li class="dropdown nav-item" :class="{ show }" v-clickaway="() => show = false">
-          <a href="#" class="nav-link dropdown-toggle"
+          <a href="#" class="nav-link dropdown-toggle text-white"
              role="button" @click.prevent="show = !show">
             {{ user.name }} <span class="caret"/>
           </a>
@@ -117,8 +117,13 @@ html {
   background: white;
 }
 
+.bg-brand {
+  background: $brand-primary;
+}
+
 .navbar {
   border-bottom: 1px solid $border-color;
+  height: 40px;
 }
 
 .flex-auto {
