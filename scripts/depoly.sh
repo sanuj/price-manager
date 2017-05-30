@@ -1,46 +1,51 @@
 #!/usr/bin/env bash
 
 # Build again.
-# TODO: This could be removed!
-yarn run production;
+yarn && yarn run production;
 
 # Remove unwanted stuff.
-php artisan clear-compiled;
-rm -rf node_modules storage;
+rm -rf node_modules storage .env;
 
-SHOULD_RESTART_WORKERS=$(git diff --name-only HEAD^1 | grep -c '.php')
+SHOULD_RESTART_WORKERS=$(git diff --name-only HEAD^1 | grep -c '.php');
 
 # Deployment
 # 1. Prepare
-release=$(date +%Y%m%d%H%m%S)
-ssh ${APP_SERVER_DSN} 'bash -se' << REMOTE_SCRIPT
-  mkdir ~/exponent/releases/${release}
-REMOTE_SCRIPT
+PROJECT=${APP_DEPLOYMENT_DIR:-exponent};
+RELEASE=$(date +%Y%m%d%H%m%S);
 # 2. Upload
-scp -r ~/exponent ${APP_SERVER_DSN}:~/exponent/releases/${release}
+tar -czf ~/${RELEASE}.tar.gz .
+scp ~/${RELEASE}.tar.gz ${APP_SERVER_DSN}:~/${PROJECT}/releases/${RELEASE}
 # 3. Deploy
 ssh ${APP_SERVER_DSN} 'bash -se' << REMOTE_SCRIPT
-  # Link storage and environment
-  ln -s ~/exponent/storage ~/exponent/releases/${release}/storage;
-  ln -s ~/exponent/.env ~/exponent/releases/${release}/.env;
+  echo "Extract ${RELEASE}.tar.gz -> ${RELEASE}";
+  mkdir ~/${PROJECT}/releases/${RELEASE};
+  cd ~/${PROJECT}/releases/${RELEASE};
+  tar -xzf ~/${PROJECT}/releases/${RELEASE}.tar.gz;
+  rm ~/${PROJECT}/releases/${RELEASE}.tar.gz;
 
-  # Run post deployment application commands.
-  cd ~/exponent/releases/${release};
+  echo "Link storage and environment";
+  ln -s ~/${PROJECT}/storage ~/${PROJECT}/releases/${RELEASE}/storage;
+  ln -s ~/${PROJECT}/.env ~/${PROJECT}/releases/${RELEASE}/.env;
+
+  echo "Run post deployment application commands";
   php artisan migrate --env=production --force --no-interaction;
-  php artisan view:clear --quiet;
-  php artisan cache:clear --quiet;
-  php artisan config:cache --quiet;
-  php artisan optimize --quiet;
+  php artisan view:clear;
+  php artisan cache:clear;
+  php artisan config:cache;
+  php artisan optimize;
 
-  # Link release to current.
-  ln -nfs ~/exponent/releases/20170529173309 ~/exponent/current;
+  echo "Link RELEASE to current";
+  ln -nfs ~/${PROJECT}/releases/${RELEASE} ~/${PROJECT}/current;
 
-  # Restart services.
-  if [[ ${SHOULD_RESTART_WORKERS} -ge 0 ]] then
+  if [[ ${SHOULD_RESTART_WORKERS} -ge 0 ]]; then;
+    echo "Restart Workers"
     sudo supervisorctl restart all;
   fi;
 
+  sudo service php7.1-fpm restart;
+  sudo service nginx restart;
+
   # Delete old release
-  cd ~/exponent/releases;
+  cd ~/${PROJECT}/releases;
   find . -maxdepth 1 -name "20*" -mmin +2880 | head -n 5 | xargs rm -Rf;
 REMOTE_SCRIPT
