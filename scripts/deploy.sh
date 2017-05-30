@@ -14,7 +14,7 @@ PROJECT=${APP_DEPLOYMENT_DIR:-exponent};
 RELEASE=$(date +%Y%m%d%H%m%S);
 # 2. Upload
 tar -czf ~/${RELEASE}.tar.gz .
-scp ~/${RELEASE}.tar.gz ${APP_SERVER_DSN}:~/${PROJECT}/releases/${RELEASE}
+scp ~/${RELEASE}.tar.gz ${APP_SERVER_DSN}:~/${PROJECT}/releases
 # 3. Deploy
 ssh ${APP_SERVER_DSN} 'bash -se' << REMOTE_SCRIPT
   echo "Extract ${RELEASE}.tar.gz -> ${RELEASE}";
