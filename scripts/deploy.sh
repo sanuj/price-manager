@@ -37,13 +37,12 @@ ssh ${APP_SERVER_DSN} 'bash -se' << REMOTE_SCRIPT
   echo "Link RELEASE to current";
   ln -nfs ~/${PROJECT}/releases/${RELEASE} ~/${PROJECT}/current;
 
-  if [[ ${SHOULD_RESTART_WORKERS} -ge 0 ]]; then;
-    echo "Restart Workers"
-    sudo supervisorctl restart all;
-  fi;
-
+  echo "Restart nginx & php ";
   sudo service php7.1-fpm restart;
   sudo service nginx restart;
+
+  echo "Restart workers";
+  sudo supervisorctl restart all;
 
   # Delete old release
   cd ~/${PROJECT}/releases;
