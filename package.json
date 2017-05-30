@@ -26,7 +26,8 @@
     "vue-clickaway": "latest",
     "vue-router": "^2.3.1",
     "vue-template-compiler": "^2.2.6",
-    "vuex": "^2.2.1"
+    "vuex": "^2.2.1",
+    "webpack-plugin-chunk-manifest": "^0.1.1"
   },
   "dependencies": {
     "babel-preset-stage-2": "^6.22.0",

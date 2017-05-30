@@ -12,8 +12,13 @@
 
     <!-- Styles -->
     <link href="{{ mix('/css/app.css') }}" rel="stylesheet">
+    @if(file_exists(public_path('chunk-manifest.json')) and $chunks = json_decode(public_path('chunk-manifest.json'), true))
+        @foreach($chunks as $chunk)
+            <link rel="prefetch" href="{{ $chunk }}" as="script">
+        @endforeach
+    @endif
 
-    <!-- Scripts -->
+<!-- Scripts -->
     <script>
     window.Laravel = {!! json_encode([
             'csrfToken' => csrf_token(),
