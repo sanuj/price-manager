@@ -14,3 +14,4 @@ Homestead.yaml
 /public/css
 /public/fonts
 /public/mix-manifest.json
+/public/chunk-manifest.json
