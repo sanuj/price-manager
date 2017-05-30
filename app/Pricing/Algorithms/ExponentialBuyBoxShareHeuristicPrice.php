@@ -4,11 +4,12 @@ namespace App\Pricing\Algorithms;
 
 use App\Contracts\PricingAlgorithmContract;
 use App\MarketplaceListing;
+use Illuminate\Support\Facades\Log;
 
 class ExponentialBuyBoxShareHeuristicPrice extends BuyBoxShareHeuristicPrice  implements PricingAlgorithmContract
 {
 
-    public function predict(MarketplaceListing $listing): float
+    public function calculatePrice(MarketplaceListing $listing, $silent=false): float
     {
         $this->init($listing);
 
@@ -41,7 +42,12 @@ class ExponentialBuyBoxShareHeuristicPrice extends BuyBoxShareHeuristicPrice  im
             'params' => compact('increment_exponent', 'decrement_exponent', 'last_bbs')
         ]);
 
-        return $this->tamePredictedPrice($listing, $predicted_price);
+        if(!$silent) {
+            Log::debug(get_class($this).'::MarketplaceListingId('.$listing->id.') - bbs: '.$this->bbs
+                .', predicted_price: '.$predicted_price, $listing->repricing_algorithm['params'] ?? []);
+        }
+
+        return $predicted_price;
     }
 
 }
