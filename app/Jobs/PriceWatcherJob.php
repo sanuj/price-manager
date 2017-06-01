@@ -155,7 +155,8 @@ class PriceWatcherJob extends SelfSchedulingJob
                 'available' => $offers[$listing->uid],
             ]);
 
-            $listing->update(['marketplace_selling_price' => $offer['price']]);
+            $listing->marketplace_selling_price = $offer['price'];
+            $listing->save();
         }
     }
 
