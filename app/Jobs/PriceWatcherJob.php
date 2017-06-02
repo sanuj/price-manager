@@ -161,7 +161,7 @@ class PriceWatcherJob extends SelfSchedulingJob
         }
 
         if($snapshot_success) {
-            $listing->last_price_watch = Carbon::now()->toDateTimeString();
+            $listing->last_price_watch = Carbon::now();
         }
 
         $listing->save();
