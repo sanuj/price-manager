@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class MarketplaceListing extends Model
@@ -59,5 +60,10 @@ class MarketplaceListing extends Model
     public function priceSnapshots()
     {
         return $this->hasMany(PriceSnapshot::class);
+    }
+
+    public function getLastPriceWatchAttribute($value)
+    {
+        return Carbon::parse($value);
     }
 }
