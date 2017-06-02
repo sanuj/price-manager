@@ -22,6 +22,7 @@ class MarketplaceListing extends Model
         'url',
         'ref_num',
         'status',
+        'last_price_watch',
     ];
 
     protected $casts = [
