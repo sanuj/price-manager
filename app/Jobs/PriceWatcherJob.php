@@ -74,8 +74,8 @@ class PriceWatcherJob extends SelfSchedulingJob
     {
         $query = MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
                                    ->whereCompanyId($this->company->getKey())
-                                   ->where('last_price_watch', '<', Carbon::now()->addMinutes(-$this->getFrequency()))
-                                   ->orWhere('last_price_watch', null)
+                                   ->whereRaw('(last_price_watch < "'.Carbon::now()->addMinutes(-$this->getFrequency())->toDateTimeString()
+                                       .'" or last_price_watch is null)')
                                    ->orderBy('last_price_watch', 'asc');
 
         $total = $query->count();
