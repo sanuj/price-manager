@@ -54,8 +54,8 @@ class PriceWatcherJob extends SelfSchedulingJob
             $competitors = $api->getOffers($listings);
 
             foreach ($listings as $listing) {
-                $this->recordPriceSnapshot($listing, $offers, $competitors);
-                $this->updateMarketplaceListing($listing, $offers);
+                $success = $this->recordPriceSnapshot($listing, $offers, $competitors);
+                $this->updateMarketplaceListing($listing, $offers, $success);
             }
         } catch (ThrottleLimitReachedException $e) {
             $this->debug('Throttle limit reached.');
@@ -74,8 +74,9 @@ class PriceWatcherJob extends SelfSchedulingJob
     {
         $query = MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
                                    ->whereCompanyId($this->company->getKey())
-                                   ->where('updated_at', '<', Carbon::now()->addMinutes(-$this->getFrequency()))
-                                   ->orderBy('updated_at', 'asc');
+                                   ->where('last_price_watch', '<', Carbon::now()->addMinutes(-$this->getFrequency()))
+                                   ->orWhere('last_price_watch', null)
+                                   ->orderBy('last_price_watch', 'asc');
 
         $total = $query->count();
         $listings = $query->take($this->getPerRequestCount())->get();
@@ -89,12 +90,12 @@ class PriceWatcherJob extends SelfSchedulingJob
         /** @var MarketplaceListing $listing */
         $listing = MarketplaceListing::whereMarketplaceId($this->marketplace->getKey())
                                      ->whereCompanyId($this->company->getKey())
-                                     ->orderBy('updated_at', 'asc')->first();
+                                     ->orderBy('last_price_watch', 'asc')->first();
 
         if ($listing) {
             $minutes = min(
                 $this->getFrequency(),
-                max(0, $this->getFrequency() - $listing->updated_at->diffInMinutes())
+                max(0, $this->getFrequency() - $listing->last_price_watch->diffInMinutes())
             );
 
             $this->debug('No tasks left. Rescheduling after '.$minutes.' minutes.');
@@ -118,7 +119,7 @@ class PriceWatcherJob extends SelfSchedulingJob
                 'uid' => $listing->uid,
             ]);
 
-            return; // Not loaded from marketplace, should retry.
+            return false; // Not loaded from marketplace, should retry.
         }
 
         $snapshot = new Snapshot([
@@ -136,12 +137,14 @@ class PriceWatcherJob extends SelfSchedulingJob
             $listing->touch();
         } elseif (!$snapshot->save()) {
             $this->debug('Failed to store listing in mongodb.', $snapshot->toArray());
+            return false;
         } else {
             $listing->touch();
         }
+        return true;
     }
 
-    protected function updateMarketplaceListing(MarketplaceListing $listing, $offers)
+    protected function updateMarketplaceListing(MarketplaceListing $listing, $offers, $snapshot_success)
     {
         if (!isset($offers[$listing->uid]) or is_null($offer = array_first($offers[$listing->uid]))) {
             return;
@@ -156,8 +159,13 @@ class PriceWatcherJob extends SelfSchedulingJob
             ]);
 
             $listing->marketplace_selling_price = $offer['price'];
-            $listing->save();
         }
+
+        if($snapshot_success) {
+            $listing->last_price_watch = Carbon::now()->toDateTimeString();
+        }
+
+        $listing->save();
     }
 
     protected function isPriceEqual($price_one, $price_two)
