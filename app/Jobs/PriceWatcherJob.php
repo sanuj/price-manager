@@ -147,10 +147,9 @@ class PriceWatcherJob extends SelfSchedulingJob
     protected function updateMarketplaceListing(MarketplaceListing $listing, $offers, $snapshot_success)
     {
         if (!isset($offers[$listing->uid]) or is_null($offer = array_first($offers[$listing->uid]))) {
-            return;
+            // Pass
         }
-
-        if (is_numeric($offer['price']) && !$this->isPriceEqual($listing->marketplace_selling_price, $offer['price'])) {
+        else if (is_numeric($offer['price']) && !$this->isPriceEqual($listing->marketplace_selling_price, $offer['price'])) {
             $this->debug("Price inconsistency for MarketplaceListing({$listing->getKey()})", [
                 'local' => $listing->marketplace_selling_price,
                 'remote' => $offer['price'],
