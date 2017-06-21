@@ -12,7 +12,12 @@ class AnalyticsController extends Controller
 
     public function snapshots(Request $request) {
 //        $this->authorize('read', Snapshot::class);
-        $marketplace_listing = $this->getMarketplaceListing($request->sku_uid_id, $request->user()->company->getKey());
+        if($request->exponent_c_id){
+            $marketplace_listing = $this->getMarketplaceListing($request->sku_uid_id, $request->exponent_c_id);
+        }else{
+            $marketplace_listing = $this->getMarketplaceListing($request->sku_uid_id, $request->user()->company->getKey());
+        }
+
         $snapshots = Snapshot::where('marketplace_listing_id', $marketplace_listing->getKey())
             ->where('created_at', '>=', Carbon::createFromFormat('Y-m-d', $request->start_date))
             ->where('created_at', '<=', Carbon::createFromFormat('Y-m-d', $request->end_date))
